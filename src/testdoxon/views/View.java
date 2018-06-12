@@ -11,6 +11,7 @@ import org.eclipse.jface.viewers.*;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 
+import java.io.File;
 
 import org.eclipse.jface.action.*;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -110,37 +111,16 @@ public class View extends ViewPart {
 		viewer.setSorter(new NameSorter());
 		viewer.setInput(getViewSite());
 		viewer.getControl().setBackground(new Color(null, 255, 255, 230));
-
-		IWorkbench workbench = PlatformUI.getWorkbench();
 		
-		workbench.addWindowListener(new IWindowListener() {
+		ISelectionService iSelectionService = this.getSite().getWorkbenchWindow().getSelectionService();
+		iSelectionService.addPostSelectionListener(new ISelectionListener() {
 			
 			@Override
-			public void windowOpened(IWorkbenchWindow arg0) {
-				// TODO Auto-generated method stub
-				System.out.println("Opened");
-				//System.out.println(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor().getTitle());
-			}
-			
-			@Override
-			public void windowDeactivated(IWorkbenchWindow arg0) {
-				// TODO Auto-generated method stub
-				//System.out.println(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor().getTitle());
-				System.out.println("Deactivated");
-			}
-			
-			@Override
-			public void windowClosed(IWorkbenchWindow arg0) {
-				// TODO Auto-generated method stub
-				//System.out.println(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor().getTitle());
-				System.out.println("Closed");
-			}
-			
-			@Override
-			public void windowActivated(IWorkbenchWindow arg0) {
-				// TODO Auto-generated method stub
-				//System.out.println(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor().getTitle());
-				System.out.println("Activated");
+			public void selectionChanged(IWorkbenchPart arg0, ISelection arg1) {
+				if(arg0.getTitle().matches(".*\\.java")) {
+					File file = (File) arg0.getSite().getPage().getActiveEditor().getEditorInput().getAdapter(File.class);
+					System.out.println(file.getAbsolutePath());
+				}
 			}
 		});
 
