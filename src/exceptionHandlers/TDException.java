@@ -1,4 +1,4 @@
-package exceptions;
+package exceptionHandlers;
 
 public class TDException extends Exception {
 

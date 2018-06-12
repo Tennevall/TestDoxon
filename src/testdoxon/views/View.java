@@ -4,7 +4,7 @@ package testdoxon.views;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.part.*;
 
-import exceptions.TDException;
+import exceptionHandlers.TDException;
 import handlers.FileHandler;
 
 import org.eclipse.jface.viewers.*;
@@ -87,6 +87,7 @@ public class View extends ViewPart {
 					getSharedImages().getImage(ISharedImages.IMG_OBJ_ELEMENT);
 		}
 	}
+	@SuppressWarnings("deprecation")
 	class NameSorter extends ViewerSorter {
 	}
 
@@ -101,6 +102,7 @@ public class View extends ViewPart {
 	 * This is a callback that will allow us
 	 * to create the viewer and initialize it.
 	 */
+	@SuppressWarnings("deprecation")
 	public void createPartControl(Composite parent) {
 		viewer = new TableViewer(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
 		viewer.setContentProvider(new ViewContentProvider());

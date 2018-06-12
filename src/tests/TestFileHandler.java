@@ -5,7 +5,7 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
-import exceptions.TDException;
+import exceptionHandlers.TDException;
 import handlers.FileHandler;
 
 public class TestFileHandler {

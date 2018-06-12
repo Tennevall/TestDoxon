@@ -1,9 +1,8 @@
 package handlers;
 
 import java.io.File;
-import java.util.Arrays;
 
-import exceptions.TDException;
+import exceptionHandlers.TDException;
 import repositories.FileRepository;
 
 public class FileHandler {
