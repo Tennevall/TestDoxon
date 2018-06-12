@@ -3,6 +3,10 @@ package testdoxon.views;
 
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.part.*;
+
+import exceptionHandlers.TDException;
+import handlers.FileHandler;
+
 import org.eclipse.jface.viewers.*;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
@@ -44,6 +48,7 @@ public class View extends ViewPart {
 	private Action action1;
 	private Action action2;
 	private Action doubleClickAction;
+	private FileHandler fileHandler;
 
 	/*
 	 * The content provider class is responsible for
@@ -61,7 +66,13 @@ public class View extends ViewPart {
 		public void dispose() {
 		}
 		public Object[] getElements(Object parent) {
-			return new String[] { "Hej", "Svejs", "Mannen" };
+			//return new String[] { "Hej", "Svejs", "Mannen" };
+			
+			try {
+				return fileHandler.getMethodsFromFile("C:\\Users\\eschras\\eclipse-workspace\\TestDoxon\\TestInputs.java");
+			} catch (TDException e) {
+				return new String[] {e.getMessage()};
+			}
 		}
 	}
 	class ViewLabelProvider extends LabelProvider implements ITableLabelProvider {
@@ -76,6 +87,7 @@ public class View extends ViewPart {
 					getSharedImages().getImage(ISharedImages.IMG_OBJ_ELEMENT);
 		}
 	}
+	@SuppressWarnings("deprecation")
 	class NameSorter extends ViewerSorter {
 	}
 
@@ -83,12 +95,14 @@ public class View extends ViewPart {
 	 * The constructor.
 	 */
 	public View() {
+		this.fileHandler = new FileHandler();
 	}
 
 	/**
 	 * This is a callback that will allow us
 	 * to create the viewer and initialize it.
 	 */
+	@SuppressWarnings("deprecation")
 	public void createPartControl(Composite parent) {
 		viewer = new TableViewer(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
 		viewer.setContentProvider(new ViewContentProvider());
