@@ -1,6 +1,5 @@
 package testdoxon.views;
 
-
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.part.*;
 
@@ -19,22 +18,18 @@ import org.eclipse.ui.*;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.SWT;
 
-
 /**
- * This sample class demonstrates how to plug-in a new
- * workbench view. The view shows data obtained from the
- * model. The sample creates a dummy model on the fly,
- * but a real implementation would connect to the model
- * available either in this or another plug-in (e.g. the workspace).
- * The view is connected to the model using a content provider.
+ * This sample class demonstrates how to plug-in a new workbench view. The view
+ * shows data obtained from the model. The sample creates a dummy model on the
+ * fly, but a real implementation would connect to the model available either in
+ * this or another plug-in (e.g. the workspace). The view is connected to the
+ * model using a content provider.
  * <p>
- * The view uses a label provider to define how model
- * objects should be presented in the view. Each
- * view can present the same model objects using
- * different labels and icons, if needed. Alternatively,
- * a single label provider can be shared between views
- * in order to ensure that objects of the same type are
- * presented in the same way everywhere.
+ * The view uses a label provider to define how model objects should be
+ * presented in the view. Each view can present the same model objects using
+ * different labels and icons, if needed. Alternatively, a single label provider
+ * can be shared between views in order to ensure that objects of the same type
+ * are presented in the same way everywhere.
  * <p>
  */
 
@@ -49,45 +44,64 @@ public class View extends ViewPart {
 	private Action action1;
 	private Action action2;
 	private Action doubleClickAction;
+
+	private ViewContentProvider viewContentProvider;
+
 	private FileHandler fileHandler;
+	private File currentFile;
+	
+	
 
 	/*
-	 * The content provider class is responsible for
-	 * providing objects to the view. It can wrap
-	 * existing objects in adapters or simply return
-	 * objects as-is. These objects may be sensitive
-	 * to the current input of the view, or ignore
-	 * it and always show the same content 
-	 * (like Task List, for example).
+	 * The content provider class is responsible for providing objects to the view.
+	 * It can wrap existing objects in adapters or simply return objects as-is.
+	 * These objects may be sensitive to the current input of the view, or ignore it
+	 * and always show the same content (like Task List, for example).
 	 */
-	 
+
 	class ViewContentProvider implements IStructuredContentProvider {
+		
+		private String testPath = "C:\\Users\\eschras\\eclipse-workspace\\TestDoxon\\TestInputs.java";
+		
 		public void inputChanged(Viewer v, Object oldInput, Object newInput) {
+			System.out.println("Uppdaterar!!!" + newInput);
+			if(newInput instanceof String) {
+				this.testPath = (String) newInput;
+				//this.testPath = this.testPath.replaceAll("\\\\", "\\\\\\\\");
+				this.testPath = this.testPath.replaceAll("\\\\", "\\/");
+				this.testPath = this.testPath.replaceAll(" ", "\\/ ");
+				System.out.println(this.testPath);
+			}
 		}
+
 		public void dispose() {
 		}
+
 		public Object[] getElements(Object parent) {
-			//return new String[] { "Hej", "Svejs", "Mannen" };
-			
+			// return new String[] { "Hej", "Svejs", "Mannen" };
+			System.out.println("testPath: " + testPath);
 			try {
-				return fileHandler.getMethodsFromFile("C:\\Users\\eschras\\eclipse-workspace\\TestDoxon\\TestInputs.java");
+				return fileHandler.getMethodsFromFile(testPath);
 			} catch (TDException e) {
-				return new String[] {e.getMessage()};
+				return new String[] { e.getMessage() };
 			}
 		}
 	}
+
 	class ViewLabelProvider extends LabelProvider implements ITableLabelProvider {
 		public String getColumnText(Object obj, int index) {
 			return getText(obj);
 		}
+
 		public Image getColumnImage(Object obj, int index) {
 			return getImage(obj);
 		}
+
 		public Image getImage(Object obj) {
-			return PlatformUI.getWorkbench().
-					getSharedImages().getImage(ISharedImages.IMG_OBJ_ELEMENT);
+			return PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_OBJ_ELEMENT);
 		}
 	}
+
 	@SuppressWarnings("deprecation")
 	class NameSorter extends ViewerSorter {
 	}
@@ -97,29 +111,38 @@ public class View extends ViewPart {
 	 */
 	public View() {
 		this.fileHandler = new FileHandler();
+		this.currentFile = null;
+		this.viewContentProvider = new ViewContentProvider();
 	}
 
 	/**
-	 * This is a callback that will allow us
-	 * to create the viewer and initialize it.
+	 * This is a callback that will allow us to create the viewer and initialize it.
 	 */
 	@SuppressWarnings("deprecation")
 	public void createPartControl(Composite parent) {
 		viewer = new TableViewer(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
-		viewer.setContentProvider(new ViewContentProvider());
+
+		// viewer.setContentProvider(new ViewContentProvider());
+		viewer.setContentProvider(this.viewContentProvider);
+
 		viewer.setLabelProvider(new ViewLabelProvider());
 		viewer.setSorter(new NameSorter());
 		viewer.setInput(getViewSite());
 		viewer.getControl().setBackground(new Color(null, 255, 255, 230));
-		
+
 		ISelectionService iSelectionService = this.getSite().getWorkbenchWindow().getSelectionService();
 		iSelectionService.addPostSelectionListener(new ISelectionListener() {
-			
+
 			@Override
 			public void selectionChanged(IWorkbenchPart arg0, ISelection arg1) {
-				if(arg0.getTitle().matches(".*\\.java")) {
+				if (arg0.getTitle().matches(".*\\.java")) {
 					File file = (File) arg0.getSite().getPage().getActiveEditor().getEditorInput().getAdapter(File.class);
-					System.out.println(file.getAbsolutePath());
+
+					if (currentFile == null || !file.getAbsolutePath().equals(currentFile.getAbsolutePath())) {
+						currentFile = file;
+						viewer.setInput(currentFile.getAbsolutePath());
+					}
+
 				}
 			}
 		});
@@ -163,7 +186,7 @@ public class View extends ViewPart {
 		// Other plug-ins can contribute there actions here
 		manager.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
 	}
-	
+
 	private void fillLocalToolBar(IToolBarManager manager) {
 		manager.add(action1);
 		manager.add(action2);
@@ -177,9 +200,9 @@ public class View extends ViewPart {
 		};
 		action1.setText("Action 1");
 		action1.setToolTipText("Action 1 tooltip");
-		action1.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().
-			getImageDescriptor(ISharedImages.IMG_OBJS_INFO_TSK));
-		
+		action1.setImageDescriptor(
+				PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_OBJS_INFO_TSK));
+
 		action2 = new Action() {
 			public void run() {
 				showMessage("Action 2 executed");
@@ -187,13 +210,13 @@ public class View extends ViewPart {
 		};
 		action2.setText("Action 2");
 		action2.setToolTipText("Action 2 tooltip");
-		action2.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().
-				getImageDescriptor(ISharedImages.IMG_OBJS_INFO_TSK));
+		action2.setImageDescriptor(
+				PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_OBJS_INFO_TSK));
 		doubleClickAction = new Action() {
 			public void run() {
 				ISelection selection = viewer.getSelection();
-				Object obj = ((IStructuredSelection)selection).getFirstElement();
-				showMessage("Double-click detected on "+obj.toString());
+				Object obj = ((IStructuredSelection) selection).getFirstElement();
+				showMessage("Double-click detected on " + obj.toString());
 			}
 		};
 	}
@@ -205,11 +228,9 @@ public class View extends ViewPart {
 			}
 		});
 	}
+
 	private void showMessage(String message) {
-		MessageDialog.openInformation(
-			viewer.getControl().getShell(),
-			"TestDoxon",
-			message);
+		MessageDialog.openInformation(viewer.getControl().getShell(), "TestDoxon", message);
 	}
 
 	/**
