@@ -69,7 +69,7 @@ public class View extends ViewPart {
 				this.testPath = (String) newInput;
 				//this.testPath = this.testPath.replaceAll("\\\\", "\\\\\\\\");
 				this.testPath = this.testPath.replaceAll("\\\\", "\\/");
-				this.testPath = this.testPath.replaceAll(" ", "\\/ ");
+				//this.testPath = this.testPath.replaceAll(" ", "\\/ ");
 				System.out.println(this.testPath);
 			}
 		}
