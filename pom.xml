@@ -17,7 +17,7 @@
     </plugins>
   </build>
   
-  <dependencies>
+<dependencies>
   
   	<!-- https://mvnrepository.com/artifact/junit/junit -->
 	<dependency>
@@ -25,8 +25,8 @@
     	<artifactId>junit</artifactId>
     	<version>4.12</version>
     	<scope>test</scope>
-	</dependency>
-  	<!-- https://mvnrepository.com/artifact/org.eclipse.core/org.eclipse.core.resources -->
-  </dependencies>
+	</dependency>  	
+	
+  </dependencies> 
   
 </project>
