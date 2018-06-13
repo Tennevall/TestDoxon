@@ -12,10 +12,6 @@ import org.eclipse.swt.graphics.Image;
 
 import java.io.File;
 
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IWorkspace;
-import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.jface.action.*;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.ui.*;
@@ -53,6 +49,7 @@ public class View extends ViewPart {
 
 	private FileHandler fileHandler;
 	private File currentFile;
+	private File currentTestFile;
 	
 	
 
@@ -68,13 +65,9 @@ public class View extends ViewPart {
 		private String testPath = "C:\\Users\\eschras\\eclipse-workspace\\TestDoxon\\TestInputs.java";
 		
 		public void inputChanged(Viewer v, Object oldInput, Object newInput) {
-			//System.out.println("Uppdaterar!!!" + newInput);
 			if(newInput instanceof String) {
 				this.testPath = (String) newInput;
-				//this.testPath = this.testPath.replaceAll("\\\\", "\\\\\\\\");
 				this.testPath = this.testPath.replaceAll("\\\\", "\\/");
-				//this.testPath = this.testPath.replaceAll(" ", "\\/ ");
-				//System.out.println(this.testPath);
 			}
 		}
 
@@ -82,8 +75,6 @@ public class View extends ViewPart {
 		}
 
 		public Object[] getElements(Object parent) {
-			// return new String[] { "Hej", "Svejs", "Mannen" };
-			//System.out.println("testPath: " + testPath);
 			try {
 				return fileHandler.getMethodsFromFile(testPath);
 			} catch (TDException e) {
@@ -125,10 +116,7 @@ public class View extends ViewPart {
 	@SuppressWarnings("deprecation")
 	public void createPartControl(Composite parent) {
 		viewer = new TableViewer(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
-
-		// viewer.setContentProvider(new ViewContentProvider());
 		viewer.setContentProvider(this.viewContentProvider);
-
 		viewer.setLabelProvider(new ViewLabelProvider());
 		viewer.setSorter(new NameSorter());
 		viewer.setInput(getViewSite());
@@ -157,8 +145,8 @@ public class View extends ViewPart {
 								newFile += parts[i] + "\\";
 							}
 							newFile += "tests\\Test" + currentFile.getName();
-							File testFile = new File(newFile);
-							viewer.setInput(testFile.getAbsolutePath());
+							currentTestFile = new File(newFile);
+							viewer.setInput(currentTestFile.getAbsolutePath());
 						}
 						
 					}
@@ -236,7 +224,17 @@ public class View extends ViewPart {
 			public void run() {
 				ISelection selection = viewer.getSelection();
 				Object obj = ((IStructuredSelection) selection).getFirstElement();
-				showMessage("Double-click detected on " + obj.toString());
+				//showMessage("Double-click detected on " + obj.toString() + currentTestFile.getAbsolutePath());
+				File file = (File)PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor().getEditorInput().getAdapter(File.class);
+				
+				if(file.getAbsolutePath().equals(currentTestFile.getAbsolutePath().toString()))
+				{
+					showMessage("same file");
+				}
+				else
+				{
+					showMessage("another file");
+				}
 			}
 		};
 	}
@@ -260,9 +258,7 @@ public class View extends ViewPart {
 		viewer.getControl().setFocus();
 	}
 
-	@Override
 	public Object getAdapter(Class arg0) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 }
