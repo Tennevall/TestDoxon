@@ -1,6 +1,7 @@
 package testdoxon.views;
 
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.part.*;
 
 import exceptionHandlers.TDException;
@@ -12,6 +13,13 @@ import org.eclipse.swt.graphics.Image;
 
 import java.io.File;
 
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IResourceChangeEvent;
+import org.eclipse.core.resources.IResourceChangeListener;
+import org.eclipse.core.resources.IResourceDelta;
+import org.eclipse.core.resources.IResourceDeltaVisitor;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.action.*;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.ui.*;
@@ -49,8 +57,8 @@ public class View extends ViewPart {
 
 	private FileHandler fileHandler;
 	private File currentFile;
-	
-	
+
+	private IResourceChangeListener saveFileListener;
 
 	/*
 	 * The content provider class is responsible for providing objects to the view.
@@ -60,17 +68,13 @@ public class View extends ViewPart {
 	 */
 
 	class ViewContentProvider implements IStructuredContentProvider {
-		
+
 		private String testPath = "C:\\Users\\eschras\\eclipse-workspace\\TestDoxon\\TestInputs.java";
-		
+
 		public void inputChanged(Viewer v, Object oldInput, Object newInput) {
-			System.out.println("Uppdaterar!!!" + newInput);
-			if(newInput instanceof String) {
+			if (newInput instanceof String) {
 				this.testPath = (String) newInput;
-				//this.testPath = this.testPath.replaceAll("\\\\", "\\\\\\\\");
 				this.testPath = this.testPath.replaceAll("\\\\", "\\/");
-				//this.testPath = this.testPath.replaceAll(" ", "\\/ ");
-				System.out.println(this.testPath);
 			}
 		}
 
@@ -78,8 +82,6 @@ public class View extends ViewPart {
 		}
 
 		public Object[] getElements(Object parent) {
-			// return new String[] { "Hej", "Svejs", "Mannen" };
-			System.out.println("testPath: " + testPath);
 			try {
 				return fileHandler.getMethodsFromFile(testPath);
 			} catch (TDException e) {
@@ -113,6 +115,51 @@ public class View extends ViewPart {
 		this.fileHandler = new FileHandler();
 		this.currentFile = null;
 		this.viewContentProvider = new ViewContentProvider();
+
+		this.saveFileListener = new IResourceChangeListener() {
+			public void resourceChanged(IResourceChangeEvent event) {
+				IResourceDelta resourceDelta = event.getDelta();
+
+				IResourceDeltaVisitor recourceDeltaVisitor = new IResourceDeltaVisitor() {
+					boolean changed = false;
+
+					@Override
+					public boolean visit(IResourceDelta arg0) throws CoreException {
+						IResource resource = arg0.getResource();
+						if (resource.getType() == IResource.FILE && !changed) {
+							if (arg0.getKind() == IResourceDelta.CHANGED) {
+								updateTable();
+								changed = true;
+							}
+						}
+						return true;
+					}
+
+				};
+
+				try {
+					resourceDelta.accept(recourceDeltaVisitor);
+				} catch (CoreException e) {
+					System.out.println(e.getMessage());
+				}
+
+			}
+		};
+	}
+
+	private void updateTable() {
+		File file = this.getSite().getWorkbenchWindow().getActivePage().getActivePart().getSite().getPage()
+				.getActiveEditor().getEditorInput().getAdapter(File.class);
+
+		if (file != null) {
+			currentFile = file;
+			Display.getDefault().syncExec(new Runnable() {
+				@Override
+				public void run() {
+					viewer.setInput(currentFile.getAbsolutePath());
+				}
+			});
+		}
 	}
 
 	/**
@@ -130,13 +177,17 @@ public class View extends ViewPart {
 		viewer.setInput(getViewSite());
 		viewer.getControl().setBackground(new Color(null, 255, 255, 230));
 
+		ResourcesPlugin.getWorkspace().addResourceChangeListener(saveFileListener, IResourceChangeEvent.POST_BUILD);
+
 		ISelectionService iSelectionService = this.getSite().getWorkbenchWindow().getSelectionService();
 		iSelectionService.addPostSelectionListener(new ISelectionListener() {
 
 			@Override
 			public void selectionChanged(IWorkbenchPart arg0, ISelection arg1) {
 				if (arg0.getTitle().matches(".*\\.java")) {
-					File file = (File) arg0.getSite().getPage().getActiveEditor().getEditorInput().getAdapter(File.class);
+
+					File file = (File) arg0.getSite().getPage().getActiveEditor().getEditorInput()
+							.getAdapter(File.class);
 
 					if (currentFile == null || !file.getAbsolutePath().equals(currentFile.getAbsolutePath())) {
 						currentFile = file;
