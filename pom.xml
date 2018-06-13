@@ -17,7 +17,7 @@
     </plugins>
   </build>
   
-  <dependencies>
+<dependencies>
   
   	<!-- https://mvnrepository.com/artifact/junit/junit -->
 	<dependency>
@@ -27,6 +27,6 @@
     	<scope>test</scope>
 	</dependency>  	
 	
-  </dependencies>
+  </dependencies> 
   
 </project>

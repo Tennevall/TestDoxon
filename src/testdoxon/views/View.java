@@ -57,8 +57,9 @@ public class View extends ViewPart {
 
 	private FileHandler fileHandler;
 	private File currentFile;
-
+	private File currentTestFile;
 	private IResourceChangeListener saveFileListener;
+
 
 	/*
 	 * The content provider class is responsible for providing objects to the view.
@@ -128,6 +129,7 @@ public class View extends ViewPart {
 						IResource resource = arg0.getResource();
 						if (resource.getType() == IResource.FILE && !changed) {
 							if (arg0.getKind() == IResourceDelta.CHANGED) {
+								System.out.println("CHANGED");
 								updateTable();
 								changed = true;
 							}
@@ -168,10 +170,7 @@ public class View extends ViewPart {
 	@SuppressWarnings("deprecation")
 	public void createPartControl(Composite parent) {
 		viewer = new TableViewer(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
-
-		// viewer.setContentProvider(new ViewContentProvider());
 		viewer.setContentProvider(this.viewContentProvider);
-
 		viewer.setLabelProvider(new ViewLabelProvider());
 		viewer.setSorter(new NameSorter());
 		viewer.setInput(getViewSite());
@@ -191,7 +190,23 @@ public class View extends ViewPart {
 
 					if (currentFile == null || !file.getAbsolutePath().equals(currentFile.getAbsolutePath())) {
 						currentFile = file;
-						viewer.setInput(currentFile.getAbsolutePath());
+						if(currentFile.getName().matches("^Test.*"))
+						{
+							viewer.setInput(currentFile.getAbsolutePath());
+						}
+						else
+						{
+							String[] parts = currentFile.getAbsolutePath().split("\\\\");
+							String newFile = "";
+							for(int i = 0; i<parts.length-2;i++)
+							{
+								newFile += parts[i] + "\\";
+							}
+							newFile += "tests\\Test" + currentFile.getName();
+							currentTestFile = new File(newFile);
+							viewer.setInput(currentTestFile.getAbsolutePath());
+						}
+						
 					}
 
 				}
@@ -267,7 +282,17 @@ public class View extends ViewPart {
 			public void run() {
 				ISelection selection = viewer.getSelection();
 				Object obj = ((IStructuredSelection) selection).getFirstElement();
-				showMessage("Double-click detected on " + obj.toString());
+				//showMessage("Double-click detected on " + obj.toString() + currentTestFile.getAbsolutePath());
+				File file = (File)PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor().getEditorInput().getAdapter(File.class);
+				
+				if(file.getAbsolutePath().equals(currentTestFile.getAbsolutePath().toString()))
+				{
+					showMessage("same file");
+				}
+				else
+				{
+					showMessage("another file");
+				}
 			}
 		};
 	}
@@ -289,5 +314,9 @@ public class View extends ViewPart {
 	 */
 	public void setFocus() {
 		viewer.getControl().setFocus();
+	}
+
+	public Object getAdapter(Class arg0) {
+		return null;
 	}
 }
