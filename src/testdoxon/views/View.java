@@ -147,12 +147,17 @@ public class View extends ViewPart {
 						if(currentFile.getName().matches("^Test.*"))
 						{
 							viewer.setInput(currentFile.getAbsolutePath());
-							System.out.println(currentFile.getAbsolutePath());
 						}
 						else
 						{
-							File testFile = new File("C:\\Users\\etenphi\\eclipse-workspace\\TestDoxon\\src\\tests\\Test" + currentFile.getName());
-							System.out.println(testFile);
+							String[] parts = currentFile.getAbsolutePath().split("\\\\");
+							String newFile = "";
+							for(int i = 0; i<parts.length-2;i++)
+							{
+								newFile += parts[i] + "\\";
+							}
+							newFile += "tests\\Test" + currentFile.getName();
+							File testFile = new File(newFile);
 							viewer.setInput(testFile.getAbsolutePath());
 						}
 						
