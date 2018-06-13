@@ -47,7 +47,7 @@ public class FileRepository {
 	private String extractMethodNames(String lineContent) {
 
 		// 1. Filter out all method names
-		Pattern pattern = Pattern.compile("public.*void.*(test|should)(.*[^ ] *\\(.*\\))");
+		Pattern pattern = Pattern.compile("^[ \t]*public.*void.*(test|should)(.*[^ ] *\\(.*\\))");
 		Matcher matcher = pattern.matcher(lineContent);
 
 		if (matcher.find()) {
