@@ -70,7 +70,7 @@ public class View extends ViewPart {
 
 	class ViewContentProvider implements IStructuredContentProvider {
 
-		private String testPath = "C:\\Users\\eschras\\eclipse-workspace\\TestDoxon\\TestInputs.java";
+		private String testPath = "";
 
 		public void inputChanged(Viewer v, Object oldInput, Object newInput) {
 			if (newInput instanceof String) {
@@ -101,7 +101,7 @@ public class View extends ViewPart {
 		}
 
 		public Image getImage(Object obj) {
-			return PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_OBJ_ELEMENT);
+			return PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_TOOL_FORWARD_DISABLED);
 		}
 	}
 
@@ -281,6 +281,7 @@ public class View extends ViewPart {
 		doubleClickAction = new Action() {
 			public void run() {
 				ISelection selection = viewer.getSelection();
+				@SuppressWarnings("unused")
 				Object obj = ((IStructuredSelection) selection).getFirstElement();
 				//showMessage("Double-click detected on " + obj.toString() + currentTestFile.getAbsolutePath());
 				File file = (File)PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor().getEditorInput().getAdapter(File.class);
@@ -316,7 +317,8 @@ public class View extends ViewPart {
 		viewer.getControl().setFocus();
 	}
 
-	public Object getAdapter(Class arg0) {
+	@SuppressWarnings("unchecked")
+	public Object getAdapter(@SuppressWarnings("rawtypes") Class arg0) {
 		return null;
 	}
 }
