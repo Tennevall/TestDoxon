@@ -26,6 +26,12 @@
     	<version>4.12</version>
     	<scope>test</scope>
 	</dependency>
+  	<!-- https://mvnrepository.com/artifact/org.eclipse.core/org.eclipse.core.resources -->
+<dependency>
+    <groupId>org.eclipse.core</groupId>
+    <artifactId>org.eclipse.core.resources</artifactId>
+    <version>3.7.100</version>
+</dependency>
   	
   </dependencies>
   
