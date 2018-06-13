@@ -1,15 +1,5 @@
 package testdoxon;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IResourceChangeEvent;
-import org.eclipse.core.resources.IResourceChangeListener;
-import org.eclipse.core.resources.IResourceDelta;
-import org.eclipse.core.resources.IResourceDeltaVisitor;
-import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
@@ -25,19 +15,10 @@ public class Activator extends AbstractUIPlugin {
 	// The shared instance
 	private static Activator plugin;
 	
-	private static ExecutorService executor;
-	private int hookInterval = 1000;
-	private static long lastChanged = 0;
-	
-	static {
-		executor = Executors.newSingleThreadExecutor();
-	}
-	
 	/**
 	 * The constructor
 	 */
-	public Activator() {
-		
+	public Activator() {	
 	}
 
 	/*
