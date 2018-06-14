@@ -105,17 +105,17 @@ public class View extends ViewPart {
 				this.filePath = currFile.getAbsolutePath().replaceAll("\\\\", "\\/");
 				this.fileName = currFile.getParent() + "." + currFile.getName();
 				String temp[] = fileName.split("\\\\");
-				fileName = temp[temp.length-1];
-				
+				fileName = temp[temp.length - 1];
+
 			}
 		}
-		
+
 		public void dispose() {
 		}
 
 		public Object[] getElements(Object parent) {
 			try {
-				
+
 				header.setText(fileName);
 				return fileHandler.getMethodsFromFile(this.filePath);
 			} catch (TDException e) {
@@ -186,18 +186,20 @@ public class View extends ViewPart {
 	}
 
 	private void updateTable() {
-		File file = this.getSite().getWorkbenchWindow().getActivePage().getActivePart().getSite().getPage()
-				.getActiveEditor().getEditorInput().getAdapter(File.class);
+		if (this.getSite() != null) {
+			File file = this.getSite().getWorkbenchWindow().getActivePage().getActivePart().getSite().getPage()
+					.getActiveEditor().getEditorInput().getAdapter(File.class);
 
-		if (file != null) {
-			currentFile = file;
-			currentTestFile = currentFile;
-			Display.getDefault().syncExec(new Runnable() {
-				@Override
-				public void run() {
-					viewer.setInput(currentTestFile);
-				}
-			});
+			if (file != null) {
+				currentFile = file;
+				currentTestFile = currentFile;
+				Display.getDefault().syncExec(new Runnable() {
+					@Override
+					public void run() {
+						viewer.setInput(currentTestFile);
+					}
+				});
+			}
 		}
 	}
 
@@ -325,14 +327,14 @@ public class View extends ViewPart {
 
 								if (word.length() > 0 && Character.isUpperCase(word.charAt(0))) {
 									String fileToLookFor = "Test" + word + ".java";
-									
+
 									String[] parts = currentFile.getAbsolutePath().split("\\\\");
 									String newFile = "";
 									for (int i = 0; i < parts.length - 2; i++) {
 										newFile += parts[i] + "\\";
 									}
 									newFile += "tests\\" + fileToLookFor;
-									
+
 									currentTestFile = new File(newFile);
 									Display.getDefault().syncExec(new Runnable() {
 										@Override
@@ -359,17 +361,17 @@ public class View extends ViewPart {
 	private String getWordUnderCaret(int pos, StyledText text) {
 		int lineOffset = pos - text.getOffsetAtLine(text.getLineAtOffset(pos));
 		String line = text.getLine(text.getLineAtOffset(pos));
-		String[] words = line.split("[ \t\\\\(\\\\);\\\\.{}]");	
+		String[] words = line.split("[ \t\\\\(\\\\);\\\\.{}]");
 		String desiredWord = "";
-				
-		for(String word : words) {
-			if(lineOffset < word.length()) {
+
+		for (String word : words) {
+			if (lineOffset < word.length()) {
 				desiredWord = word;
 				break;
-			}	
+			}
 			lineOffset -= word.length() + 1;
 		}
-		
+
 		return desiredWord;
 	}
 
