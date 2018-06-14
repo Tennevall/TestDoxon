@@ -1,9 +1,12 @@
 package testdoxon.views;
 
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.part.*;
+import org.eclipse.ui.texteditor.AbstractTextEditor;
+import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 import exceptionHandlers.TDException;
@@ -36,10 +39,16 @@ import org.eclipse.jface.resource.FontDescriptor;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
+import org.eclipse.jface.text.Region;
 import org.eclipse.ui.*;
+import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.ide.IDE;
+import org.eclipse.ui.internal.PartListenerList;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CaretEvent;
+import org.eclipse.swt.custom.CaretListener;
+import org.eclipse.swt.custom.StyledText;
 
 /**
  * This sample class demonstrates how to plug-in a new workbench view. The view
@@ -219,14 +228,14 @@ public class View extends ViewPart {
 		viewer.setContentProvider(this.viewContentProvider);
 		viewer.setLabelProvider(new ViewLabelProvider());
 		viewer.setSorter(new NameSorter());
-		
+
 		Display.getDefault().syncExec(new Runnable() {
 			@Override
 			public void run() {
 				viewer.setInput(getViewSite());
 			}
 		});
-		
+
 		viewer.getControl().setBackground(widgetColor);
 		GridData gridDataTableView = new GridData(SWT.FILL, SWT.FILL, true, true);
 		viewer.getControl().setLayoutData(gridDataTableView);
@@ -245,7 +254,7 @@ public class View extends ViewPart {
 
 					if (currentFile == null || !file.getAbsolutePath().equals(currentFile.getAbsolutePath())) {
 						currentFile = file;
-						
+
 						if (currentFile.getName().matches("^Test.*")) {
 							currentTestFile = currentFile;
 							Display.getDefault().syncExec(new Runnable() {
@@ -276,12 +285,87 @@ public class View extends ViewPart {
 			}
 		});
 
+		PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().addPartListener(new IPartListener() {
+
+			@Override
+			public void partOpened(IWorkbenchPart arg0) {
+			}
+
+			@Override
+			public void partDeactivated(IWorkbenchPart arg0) {
+			}
+
+			@Override
+			public void partClosed(IWorkbenchPart arg0) {
+			}
+
+			@Override
+			public void partBroughtToTop(IWorkbenchPart arg0) {
+			}
+
+			@Override
+			public void partActivated(IWorkbenchPart arg0) {
+				IEditorPart iep = arg0.getSite().getPage().getActiveEditor();
+				if (iep != null) {
+					AbstractTextEditor e = (AbstractTextEditor) iep;
+					Control adapter = e.getAdapter(Control.class);
+
+					if (adapter instanceof StyledText) {
+						StyledText text = (StyledText) adapter;
+						text.addCaretListener(new CaretListener() {
+
+							@Override
+							public void caretMoved(CaretEvent arg0) {
+								String word = getWordUnderCaret(arg0.caretOffset, text);
+
+								if (word.length() > 0 && Character.isUpperCase(word.charAt(0))) {
+									String fileToLookFor = "Test" + word + ".java";
+									
+									String[] parts = currentFile.getAbsolutePath().split("\\\\");
+									String newFile = "";
+									for (int i = 0; i < parts.length - 2; i++) {
+										newFile += parts[i] + "\\";
+									}
+									newFile += "tests\\" + fileToLookFor;
+									
+									currentTestFile = new File(newFile);
+									Display.getDefault().syncExec(new Runnable() {
+										@Override
+										public void run() {
+											viewer.setInput(currentTestFile);
+										}
+									});
+								}
+							}
+						});
+					}
+				}
+			}
+		});
+
 		// Create the help context id for the viewer's control
 		PlatformUI.getWorkbench().getHelpSystem().setHelp(viewer.getControl(), "TestDoxon.viewer");
 		makeActions();
 		hookContextMenu();
 		hookDoubleClickAction();
 		contributeToActionBars();
+	}
+
+	private String getWordUnderCaret(int pos, StyledText text) {
+		int lineOffset = pos - text.getOffsetAtLine(text.getLineAtOffset(pos));
+		String line = text.getLine(text.getLineAtOffset(pos));
+		String[] words = line.split("[ \t\\\\(\\\\);\\\\.{}]");	
+		String desiredWord = "";
+				
+		for(String word : words) {
+			if(lineOffset < word.length()) {
+				desiredWord = word;
+				break;
+			}	
+			lineOffset -= word.length() + 1;
+		}
+		
+		return desiredWord;
 	}
 
 	private void hookContextMenu() {
@@ -325,34 +409,36 @@ public class View extends ViewPart {
 						.getActiveEditor().getEditorInput().getAdapter(File.class);
 
 				if (file.getAbsolutePath().equals(currentTestFile.getAbsolutePath().toString())) {
-					// Opened class is the correct Test class, so just move to the correct line in that class.
+					// Opened class is the correct Test class, so just move to the correct line in
+					// that class.
 					ITextEditor editor = (ITextEditor) getSite().getWorkbenchWindow().getActivePage().getActiveEditor();
 					IDocument document = editor.getDocumentProvider().getDocument(editor.getEditorInput());
-					
-					if(document != null) {
+
+					if (document != null) {
 						IRegion lineInfo = null;
-						
+
 						try {
 							int lineNumber = 1;
 							try {
-								lineNumber = fileHandler.getLineNumberOfSpecificMethod(currentTestFile.getAbsolutePath(), obj.toString());
-								if(lineNumber == -1) {
+								lineNumber = fileHandler.getLineNumberOfSpecificMethod(
+										currentTestFile.getAbsolutePath(), obj.toString());
+								if (lineNumber == -1) {
 									lineNumber = 1;
 								}
 							} catch (TDException e1) {
 								e1.printStackTrace();
 							}
-							
+
 							lineInfo = document.getLineInformation(lineNumber - 1);
 						} catch (BadLocationException e) {
-							
+
 						}
-						
-						if(lineInfo != null) {
+
+						if (lineInfo != null) {
 							editor.selectAndReveal(lineInfo.getOffset(), lineInfo.getLength());
 						}
 					}
-					
+
 				} else {
 					// Open Test class and jump to correct line
 					IPath location = Path.fromOSString(currentTestFile.getAbsolutePath());
@@ -375,7 +461,7 @@ public class View extends ViewPart {
 						} catch (TDException e) {
 							e.printStackTrace();
 						}
-						
+
 						try {
 							IMarker marker = iFile.createMarker(IMarker.TEXT);
 							marker.setAttributes(map);
