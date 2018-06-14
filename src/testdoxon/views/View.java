@@ -17,7 +17,10 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 
 import java.io.File;
+import java.util.HashMap;
 
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
@@ -25,10 +28,13 @@ import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IResourceDeltaVisitor;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.action.*;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.FontDescriptor;
 import org.eclipse.ui.*;
+import org.eclipse.ui.ide.IDE;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.SWT;
 
@@ -292,20 +298,37 @@ public class View extends ViewPart {
 
 	private void makeActions() {		
 		doubleClickAction = new Action() {
+			@SuppressWarnings("deprecation")
 			public void run() {
 				ISelection selection = viewer.getSelection();
 				@SuppressWarnings("unused")
 				Object obj = ((IStructuredSelection) selection).getFirstElement();
-				//showMessage("Double-click detected on " + obj.toString() + currentTestFile.getAbsolutePath());
 				File file = (File)PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor().getEditorInput().getAdapter(File.class);
 				
-				if(file.getAbsolutePath().equals(currentTestFile.getAbsolutePath().toString()))
-				{
-					showMessage("same file");
-				}
-				else
-				{
-					showMessage("another file");
+				if(file.getAbsolutePath().equals(currentTestFile.getAbsolutePath().toString())) {
+					// Jump to the correct line
+				} else {
+					IPath location = Path.fromOSString(currentTestFile.getAbsolutePath());
+					IFile iFile = ResourcesPlugin.getWorkspace().getRoot().getFileForLocation(location);
+					
+					
+					IWorkbenchPage iWorkbenchPage = getSite().getPage();
+					
+					HashMap<String, Comparable> map = new HashMap<String, Comparable>();
+					map.put(IMarker.LINE_NUMBER, new Integer(15));
+					map.put(IWorkbenchPage.EDITOR_ID_ATTR, "org.eclipse.ui.DefaultTextEditor");
+
+					try {
+						IMarker marker = iFile.createMarker(IMarker.TEXT);
+						marker.setAttributes(map);
+						
+						//IDE.open
+						IDE.openEditor(iWorkbenchPage, marker, true);
+						//IDE.openEditor(iWorkbenchPage, iFile, true, true);
+						marker.delete();
+					} catch (CoreException e2) {
+						e2.printStackTrace();
+					}
 				}
 			}
 		};
