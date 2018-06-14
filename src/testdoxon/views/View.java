@@ -175,10 +175,11 @@ public class View extends ViewPart {
 
 		if (file != null) {
 			currentFile = file;
+			currentTestFile = currentFile;
 			Display.getDefault().syncExec(new Runnable() {
 				@Override
 				public void run() {
-					viewer.setInput(currentFile);
+					viewer.setInput(currentTestFile);
 				}
 			});
 		}
@@ -311,20 +312,28 @@ public class View extends ViewPart {
 					IPath location = Path.fromOSString(currentTestFile.getAbsolutePath());
 					IFile iFile = ResourcesPlugin.getWorkspace().getRoot().getFileForLocation(location);
 					
-					
 					IWorkbenchPage iWorkbenchPage = getSite().getPage();
 					
 					HashMap<String, Comparable> map = new HashMap<String, Comparable>();
-					map.put(IMarker.LINE_NUMBER, new Integer(15));
+					int lineNumber = 0;
+					try {
+						lineNumber = fileHandler.getLineNumberOfSpecificMethod(iFile.getRawLocation().toOSString(), obj.toString());						
+						if(lineNumber == 0) {
+							map.put(IMarker.LINE_NUMBER, 1);
+						} else  {
+							map.put(IMarker.LINE_NUMBER, lineNumber);
+						}
+						
+					} catch (TDException e) {
+						e.printStackTrace();
+					}
+					
 					map.put(IWorkbenchPage.EDITOR_ID_ATTR, "org.eclipse.ui.DefaultTextEditor");
 
 					try {
 						IMarker marker = iFile.createMarker(IMarker.TEXT);
 						marker.setAttributes(map);
-						
-						//IDE.open
 						IDE.openEditor(iWorkbenchPage, marker, true);
-						//IDE.openEditor(iWorkbenchPage, iFile, true, true);
 						marker.delete();
 					} catch (CoreException e2) {
 						e2.printStackTrace();
