@@ -6,7 +6,6 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.part.*;
 import org.eclipse.ui.texteditor.AbstractTextEditor;
-import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 import exceptionHandlers.TDException;
@@ -33,18 +32,13 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.action.*;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.FontDescriptor;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
-import org.eclipse.jface.text.Region;
 import org.eclipse.ui.*;
-import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.ide.IDE;
-import org.eclipse.ui.internal.PartListenerList;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CaretEvent;
@@ -102,11 +96,33 @@ public class View extends ViewPart {
 		public void inputChanged(Viewer v, Object oldInput, Object newInput) {
 			if (newInput instanceof File) {
 				File currFile = (File) newInput;
-				this.filePath = currFile.getAbsolutePath().replaceAll("\\\\", "\\/");
-				this.fileName = currFile.getParent() + "." + currFile.getName();
-				String temp[] = fileName.split("\\\\");
-				fileName = temp[temp.length - 1];
-
+				//this.filePath = currFile.getAbsolutePath().replaceAll("\\\\", "\\/");
+				//this.fileName = currFile.getParent() + "." + currFile.getName();
+				String temp[] = currFile.getAbsolutePath().toString().split("\\\\");
+				boolean pass = false;
+				System.out.println(temp.length + temp[0] + temp[1]);
+				
+				for(int i = 0; i<temp.length ; i++)
+				{
+					if(temp[i].contains("src") || pass)
+					{
+						if(temp[i].contains(currFile.getName()))
+						{
+							this.fileName += currFile.getName();
+							pass = false;
+						}
+						else
+						{
+							pass = true;
+							this.fileName += temp[i] + ".";
+						}
+					}
+				}
+				
+				System.out.println(this.fileName);
+				
+				
+				//fileName = temp[temp.length - 1];
 			}
 		}
 
@@ -115,8 +131,7 @@ public class View extends ViewPart {
 
 		public Object[] getElements(Object parent) {
 			try {
-
-				header.setText(fileName);
+				header.setText(this.fileName);
 				return fileHandler.getMethodsFromFile(this.filePath);
 			} catch (TDException e) {
 				header.setText(e.getMessage());
@@ -138,7 +153,7 @@ public class View extends ViewPart {
 			return PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_TOOL_FORWARD_DISABLED);
 		}
 	}
-
+	
 	@SuppressWarnings("deprecation")
 	class NameSorter extends ViewerSorter {
 	}
@@ -151,16 +166,14 @@ public class View extends ViewPart {
 		this.currentFile = null;
 		this.currentTestFile = null;
 		this.viewContentProvider = new ViewContentProvider();
-
 		this.widgetColor = new Color(null, 255, 255, 230);
 
 		this.saveFileListener = new IResourceChangeListener() {
 			public void resourceChanged(IResourceChangeEvent event) {
 				IResourceDelta resourceDelta = event.getDelta();
-
 				IResourceDeltaVisitor recourceDeltaVisitor = new IResourceDeltaVisitor() {
 					boolean changed = false;
-
+					
 					@Override
 					public boolean visit(IResourceDelta arg0) throws CoreException {
 						IResource resource = arg0.getResource();
@@ -173,13 +186,11 @@ public class View extends ViewPart {
 						return true;
 					}
 				};
-
 				try {
 					resourceDelta.accept(recourceDeltaVisitor);
 				} catch (CoreException e) {
 					System.out.println(e.getMessage());
 				}
-
 			}
 		};
 	}
@@ -201,7 +212,6 @@ public class View extends ViewPart {
 				});
 			}
 		}
-
 	}
 
 	/**
@@ -274,6 +284,7 @@ public class View extends ViewPart {
 						} else {
 							String[] parts = currentFile.getAbsolutePath().split("\\\\");
 							String newFile = "";
+							
 							for (int i = 0; i < parts.length - 2; i++) {
 								newFile += parts[i] + "\\";
 							}
@@ -286,9 +297,7 @@ public class View extends ViewPart {
 								}
 							});
 						}
-
 					}
-
 				}
 			}
 		});
@@ -328,14 +337,13 @@ public class View extends ViewPart {
 
 								if (word.length() > 0 && Character.isUpperCase(word.charAt(0))) {
 									String fileToLookFor = "Test" + word + ".java";
-
 									String[] parts = currentFile.getAbsolutePath().split("\\\\");
 									String newFile = "";
+									
 									for (int i = 0; i < parts.length - 2; i++) {
 										newFile += parts[i] + "\\";
 									}
 									newFile += "tests\\" + fileToLookFor;
-
 									currentTestFile = new File(newFile);
 									Display.getDefault().syncExec(new Runnable() {
 										@Override
@@ -372,7 +380,6 @@ public class View extends ViewPart {
 			}
 			lineOffset -= word.length() + 1;
 		}
-
 		return desiredWord;
 	}
 
@@ -441,12 +448,10 @@ public class View extends ViewPart {
 						} catch (BadLocationException e) {
 
 						}
-
 						if (lineInfo != null) {
 							editor.selectAndReveal(lineInfo.getOffset(), lineInfo.getLength());
 						}
 					}
-
 				} else {
 					// Open Test class and jump to correct line
 					IPath location = Path.fromOSString(currentTestFile.getAbsolutePath());
@@ -454,9 +459,8 @@ public class View extends ViewPart {
 
 					if (iFile != null) {
 						IWorkbenchPage iWorkbenchPage = getSite().getPage();
-
 						HashMap<String, Comparable> map = new HashMap<String, Comparable>();
-						int lineNumber = 0;
+						int lineNumber = 0;					
 						try {
 							lineNumber = fileHandler.getLineNumberOfSpecificMethod(iFile.getRawLocation().toOSString(),
 									obj.toString());
@@ -465,7 +469,6 @@ public class View extends ViewPart {
 							} else {
 								map.put(IMarker.LINE_NUMBER, lineNumber);
 							}
-
 						} catch (TDException e) {
 							e.printStackTrace();
 						}
@@ -491,10 +494,6 @@ public class View extends ViewPart {
 				doubleClickAction.run();
 			}
 		});
-	}
-
-	private void showMessage(String message) {
-		MessageDialog.openInformation(viewer.getControl().getShell(), "TestDoxon", message);
 	}
 
 	/**
