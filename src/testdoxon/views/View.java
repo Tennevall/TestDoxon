@@ -33,6 +33,7 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.action.*;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.FontDescriptor;
@@ -102,15 +103,19 @@ public class View extends ViewPart {
 			if (newInput instanceof File) {
 				File currFile = (File) newInput;
 				this.filePath = currFile.getAbsolutePath().replaceAll("\\\\", "\\/");
-				this.fileName = currFile.getName();
+				this.fileName = currFile.getParent() + "." + currFile.getName();
+				String temp[] = fileName.split("\\\\");
+				fileName = temp[temp.length-1];
+				
 			}
 		}
-
+		
 		public void dispose() {
 		}
 
 		public Object[] getElements(Object parent) {
 			try {
+				
 				header.setText(fileName);
 				return fileHandler.getMethodsFromFile(this.filePath);
 			} catch (TDException e) {
