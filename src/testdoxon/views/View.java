@@ -250,7 +250,12 @@ public class View extends ViewPart {
 							}
 							newFile += "tests\\Test" + currentFile.getName();
 							currentTestFile = new File(newFile);
-							viewer.setInput(currentTestFile);
+							Display.getDefault().syncExec(new Runnable() {
+								@Override
+								public void run() {
+									viewer.setInput(currentTestFile);
+								}
+							});
 						}
 						
 					}
