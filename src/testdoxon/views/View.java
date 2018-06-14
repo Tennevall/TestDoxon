@@ -4,7 +4,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.part.*;
-
+import org.eclipse.ui.texteditor.ITextEditor;
 
 import exceptionHandlers.TDException;
 import handlers.FileHandler;
@@ -33,6 +33,9 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.action.*;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.FontDescriptor;
+import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IRegion;
 import org.eclipse.ui.*;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.swt.widgets.Menu;
@@ -60,8 +63,8 @@ public class View extends ViewPart {
 	 */
 	public static final String ID = "testdoxon.views.View";
 
-	private Color widgetColor; 
-	
+	private Color widgetColor;
+
 	private TableViewer viewer;
 	private Label header;
 
@@ -74,7 +77,6 @@ public class View extends ViewPart {
 	private File currentTestFile;
 	private IResourceChangeListener saveFileListener;
 
-
 	/*
 	 * The content provider class is responsible for providing objects to the view.
 	 * It can wrap existing objects in adapters or simply return objects as-is.
@@ -86,7 +88,7 @@ public class View extends ViewPart {
 
 		private String filePath = "";
 		private String fileName = "";
-		
+
 		public void inputChanged(Viewer v, Object oldInput, Object newInput) {
 			if (newInput instanceof File) {
 				File currFile = (File) newInput;
@@ -133,8 +135,9 @@ public class View extends ViewPart {
 	public View() {
 		this.fileHandler = new FileHandler();
 		this.currentFile = null;
+		this.currentTestFile = null;
 		this.viewContentProvider = new ViewContentProvider();
-		
+
 		this.widgetColor = new Color(null, 255, 255, 230);
 
 		this.saveFileListener = new IResourceChangeListener() {
@@ -149,7 +152,6 @@ public class View extends ViewPart {
 						IResource resource = arg0.getResource();
 						if (resource.getType() == IResource.FILE && !changed) {
 							if (arg0.getKind() == IResourceDelta.CHANGED) {
-								System.out.println("CHANGED");
 								updateTable();
 								changed = true;
 							}
@@ -196,15 +198,15 @@ public class View extends ViewPart {
 		gl.marginRight = 0;
 		gl.marginBottom = 0;
 		gl.verticalSpacing = 15;
-		
-		parent.setLayout(gl);	
+
+		parent.setLayout(gl);
 		parent.setBackground(widgetColor);
-		
+
 		header = new Label(parent, SWT.NONE);
 		header.setText("Test label");
 		header.setBackground(widgetColor);
 		header.setSize(200, 20);
-		
+
 		GridData gridDataLabel = new GridData(SWT.FILL, SWT.NONE, true, false);
 		header.setLayoutData(gridDataLabel);
 
@@ -212,12 +214,19 @@ public class View extends ViewPart {
 		FontDescriptor fd = FontDescriptor.createFrom(header.getFont());
 		Font font = fd.setStyle(SWT.BOLD).createFont(display);
 		header.setFont(font);
-		
+
 		viewer = new TableViewer(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
 		viewer.setContentProvider(this.viewContentProvider);
 		viewer.setLabelProvider(new ViewLabelProvider());
 		viewer.setSorter(new NameSorter());
-		viewer.setInput(getViewSite());
+		
+		Display.getDefault().syncExec(new Runnable() {
+			@Override
+			public void run() {
+				viewer.setInput(getViewSite());
+			}
+		});
+		
 		viewer.getControl().setBackground(widgetColor);
 		GridData gridDataTableView = new GridData(SWT.FILL, SWT.FILL, true, true);
 		viewer.getControl().setLayoutData(gridDataTableView);
@@ -236,16 +245,19 @@ public class View extends ViewPart {
 
 					if (currentFile == null || !file.getAbsolutePath().equals(currentFile.getAbsolutePath())) {
 						currentFile = file;
-						if(currentFile.getName().matches("^Test.*"))
-						{
-							viewer.setInput(currentFile.getAbsolutePath());
-						}
-						else
-						{
+						
+						if (currentFile.getName().matches("^Test.*")) {
+							currentTestFile = currentFile;
+							Display.getDefault().syncExec(new Runnable() {
+								@Override
+								public void run() {
+									viewer.setInput(currentTestFile);
+								}
+							});
+						} else {
 							String[] parts = currentFile.getAbsolutePath().split("\\\\");
 							String newFile = "";
-							for(int i = 0; i<parts.length-2;i++)
-							{
+							for (int i = 0; i < parts.length - 2; i++) {
 								newFile += parts[i] + "\\";
 							}
 							newFile += "tests\\Test" + currentFile.getName();
@@ -257,7 +269,7 @@ public class View extends ViewPart {
 								}
 							});
 						}
-						
+
 					}
 
 				}
@@ -302,46 +314,78 @@ public class View extends ViewPart {
 	private void fillLocalToolBar(IToolBarManager manager) {
 	}
 
-	private void makeActions() {		
+	private void makeActions() {
 		doubleClickAction = new Action() {
 			@SuppressWarnings("deprecation")
 			public void run() {
 				ISelection selection = viewer.getSelection();
 				@SuppressWarnings("unused")
 				Object obj = ((IStructuredSelection) selection).getFirstElement();
-				File file = (File)PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor().getEditorInput().getAdapter(File.class);
-				
-				if(file.getAbsolutePath().equals(currentTestFile.getAbsolutePath().toString())) {
-					// Jump to the correct line
-				} else {
-					IPath location = Path.fromOSString(currentTestFile.getAbsolutePath());
-					IFile iFile = ResourcesPlugin.getWorkspace().getRoot().getFileForLocation(location);
+				File file = (File) PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage()
+						.getActiveEditor().getEditorInput().getAdapter(File.class);
+
+				if (file.getAbsolutePath().equals(currentTestFile.getAbsolutePath().toString())) {
+					// Opened class is the correct Test class, so just move to the correct line in that class.
+					ITextEditor editor = (ITextEditor) getSite().getWorkbenchWindow().getActivePage().getActiveEditor();
+					IDocument document = editor.getDocumentProvider().getDocument(editor.getEditorInput());
 					
-					IWorkbenchPage iWorkbenchPage = getSite().getPage();
-					
-					HashMap<String, Comparable> map = new HashMap<String, Comparable>();
-					int lineNumber = 0;
-					try {
-						lineNumber = fileHandler.getLineNumberOfSpecificMethod(iFile.getRawLocation().toOSString(), obj.toString());						
-						if(lineNumber == 0) {
-							map.put(IMarker.LINE_NUMBER, 1);
-						} else  {
-							map.put(IMarker.LINE_NUMBER, lineNumber);
+					if(document != null) {
+						IRegion lineInfo = null;
+						
+						try {
+							int lineNumber = 1;
+							try {
+								lineNumber = fileHandler.getLineNumberOfSpecificMethod(currentTestFile.getAbsolutePath(), obj.toString());
+								if(lineNumber == -1) {
+									lineNumber = 1;
+								}
+							} catch (TDException e1) {
+								e1.printStackTrace();
+							}
+							
+							lineInfo = document.getLineInformation(lineNumber - 1);
+						} catch (BadLocationException e) {
+							
 						}
 						
-					} catch (TDException e) {
-						e.printStackTrace();
+						if(lineInfo != null) {
+							editor.selectAndReveal(lineInfo.getOffset(), lineInfo.getLength());
+						}
 					}
 					
-					map.put(IWorkbenchPage.EDITOR_ID_ATTR, "org.eclipse.ui.DefaultTextEditor");
+				} else {
+					// Open Test class and jump to correct line
+					IPath location = Path.fromOSString(currentTestFile.getAbsolutePath());
+					IFile iFile = ResourcesPlugin.getWorkspace().getRoot().getFileForLocation(location);
 
-					try {
-						IMarker marker = iFile.createMarker(IMarker.TEXT);
-						marker.setAttributes(map);
-						IDE.openEditor(iWorkbenchPage, marker, true);
-						marker.delete();
-					} catch (CoreException e2) {
-						e2.printStackTrace();
+					if (iFile != null) {
+						IWorkbenchPage iWorkbenchPage = getSite().getPage();
+
+						HashMap<String, Comparable> map = new HashMap<String, Comparable>();
+						int lineNumber = 0;
+						try {
+							lineNumber = fileHandler.getLineNumberOfSpecificMethod(iFile.getRawLocation().toOSString(),
+									obj.toString());
+							if (lineNumber == 0) {
+								map.put(IMarker.LINE_NUMBER, 1);
+							} else {
+								map.put(IMarker.LINE_NUMBER, lineNumber);
+							}
+
+						} catch (TDException e) {
+							e.printStackTrace();
+						}
+
+						map.put(IWorkbenchPage.EDITOR_ID_ATTR, "org.eclipse.ui.DefaultTextEditor");
+
+						try {
+							IMarker marker = iFile.createMarker(IMarker.TEXT);
+							marker.setAttributes(map);
+							IDE.openEditor(iWorkbenchPage, marker, true);
+							marker.delete();
+						} catch (CoreException e2) {
+							e2.printStackTrace();
+						}
 					}
 				}
 			}
