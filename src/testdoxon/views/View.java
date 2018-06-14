@@ -2,14 +2,19 @@ package testdoxon.views;
 
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.part.*;
+
 
 import exceptionHandlers.TDException;
 import handlers.FileHandler;
 
 import org.eclipse.jface.viewers.*;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 
 import java.io.File;
 
@@ -22,6 +27,7 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.action.*;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.resource.FontDescriptor;
 import org.eclipse.ui.*;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.SWT;
@@ -48,7 +54,11 @@ public class View extends ViewPart {
 	 */
 	public static final String ID = "testdoxon.views.View";
 
+	private Color widgetColor; 
+	
 	private TableViewer viewer;
+	private Label header;
+	
 	private Action action1;
 	private Action action2;
 	private Action doubleClickAction;
@@ -70,12 +80,14 @@ public class View extends ViewPart {
 
 	class ViewContentProvider implements IStructuredContentProvider {
 
-		private String testPath = "";
-
+		private String filePath = "";
+		private String fileName = "";
+		
 		public void inputChanged(Viewer v, Object oldInput, Object newInput) {
-			if (newInput instanceof String) {
-				this.testPath = (String) newInput;
-				this.testPath = this.testPath.replaceAll("\\\\", "\\/");
+			if (newInput instanceof File) {
+				File currFile = (File) newInput;
+				this.filePath = currFile.getAbsolutePath().replaceAll("\\\\", "\\/");
+				this.fileName = currFile.getName();
 			}
 		}
 
@@ -84,9 +96,11 @@ public class View extends ViewPart {
 
 		public Object[] getElements(Object parent) {
 			try {
-				return fileHandler.getMethodsFromFile(testPath);
+				header.setText(fileName);
+				return fileHandler.getMethodsFromFile(this.filePath);
 			} catch (TDException e) {
-				return new String[] { e.getMessage() };
+				header.setText(e.getMessage());
+				return new String[] {};
 			}
 		}
 	}
@@ -116,6 +130,8 @@ public class View extends ViewPart {
 		this.fileHandler = new FileHandler();
 		this.currentFile = null;
 		this.viewContentProvider = new ViewContentProvider();
+		
+		this.widgetColor = new Color(null, 255, 255, 230);
 
 		this.saveFileListener = new IResourceChangeListener() {
 			public void resourceChanged(IResourceChangeEvent event) {
@@ -158,7 +174,7 @@ public class View extends ViewPart {
 			Display.getDefault().syncExec(new Runnable() {
 				@Override
 				public void run() {
-					viewer.setInput(currentFile.getAbsolutePath());
+					viewer.setInput(currentFile);
 				}
 			});
 		}
@@ -169,12 +185,37 @@ public class View extends ViewPart {
 	 */
 	@SuppressWarnings("deprecation")
 	public void createPartControl(Composite parent) {
+		GridLayout gl = new GridLayout(1, false);
+		gl.marginLeft = 10;
+		gl.marginHeight = 10;
+		gl.marginRight = 0;
+		gl.marginBottom = 0;
+		gl.verticalSpacing = 15;
+		
+		parent.setLayout(gl);	
+		parent.setBackground(widgetColor);
+		
+		header = new Label(parent, SWT.NONE);
+		header.setText("Test label");
+		header.setBackground(widgetColor);
+		header.setSize(200, 20);
+		
+		GridData gridDataLabel = new GridData(SWT.FILL, SWT.NONE, true, false);
+		header.setLayoutData(gridDataLabel);
+
+		Display display = Display.getCurrent();
+		FontDescriptor fd = FontDescriptor.createFrom(header.getFont());
+		Font font = fd.setStyle(SWT.BOLD).createFont(display);
+		header.setFont(font);
+		
 		viewer = new TableViewer(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
 		viewer.setContentProvider(this.viewContentProvider);
 		viewer.setLabelProvider(new ViewLabelProvider());
 		viewer.setSorter(new NameSorter());
 		viewer.setInput(getViewSite());
-		viewer.getControl().setBackground(new Color(null, 255, 255, 230));
+		viewer.getControl().setBackground(widgetColor);
+		GridData gridDataTableView = new GridData(SWT.FILL, SWT.FILL, true, true);
+		viewer.getControl().setLayoutData(gridDataTableView);
 
 		ResourcesPlugin.getWorkspace().addResourceChangeListener(saveFileListener, IResourceChangeEvent.POST_BUILD);
 
@@ -204,7 +245,7 @@ public class View extends ViewPart {
 							}
 							newFile += "tests\\Test" + currentFile.getName();
 							currentTestFile = new File(newFile);
-							viewer.setInput(currentTestFile.getAbsolutePath());
+							viewer.setInput(currentTestFile);
 						}
 						
 					}
