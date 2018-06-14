@@ -25,7 +25,9 @@ public class FileHandler {
 		File file = new File(filePath);
 		return file.isFile();
 	}
-	public void TestAerrsafe() {
-		
+	
+	public int getLineNumberOfSpecificMethod (String filePath, String methodName) throws TDException {
+		return fileRepository.findLineNumberOfMethod(filePath, methodName);
 	}
+	
 }
