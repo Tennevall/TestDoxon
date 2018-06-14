@@ -375,12 +375,11 @@ public class View extends ViewPart {
 						} catch (TDException e) {
 							e.printStackTrace();
 						}
-
-						map.put(IWorkbenchPage.EDITOR_ID_ATTR, "org.eclipse.ui.DefaultTextEditor");
-
+						
 						try {
 							IMarker marker = iFile.createMarker(IMarker.TEXT);
 							marker.setAttributes(map);
+							marker.setAttribute(IDE.EDITOR_ID_ATTR, "org.eclipse.ui.MarkdownTextEditor");
 							IDE.openEditor(iWorkbenchPage, marker, true);
 							marker.delete();
 						} catch (CoreException e2) {
