@@ -172,7 +172,6 @@ public class View extends ViewPart {
 						}
 						return true;
 					}
-
 				};
 
 				try {
@@ -186,9 +185,10 @@ public class View extends ViewPart {
 	}
 
 	private void updateTable() {
-		if (this.getSite() != null) {
-			File file = this.getSite().getWorkbenchWindow().getActivePage().getActivePart().getSite().getPage()
-					.getActiveEditor().getEditorInput().getAdapter(File.class);
+		IEditorPart iEditorPart = this.getSite().getWorkbenchWindow().getActivePage().getActivePart().getSite().getPage().getActiveEditor();
+
+		if (iEditorPart != null) {
+			File file = iEditorPart.getEditorInput().getAdapter(File.class);
 
 			if (file != null) {
 				currentFile = file;
@@ -201,6 +201,7 @@ public class View extends ViewPart {
 				});
 			}
 		}
+
 	}
 
 	/**
