@@ -11,9 +11,18 @@ import testdoxon.exceptionHandlers.TDException;
 
 public class FileRepository {
 
+	/**
+	 * constructor
+	 */
 	public FileRepository() {
 	}
 
+	/**
+	 * Returns null if method name is not found
+	 * @param filePath
+	 * @return String[]
+	 * @throws TDException
+	 */
 	public String[] fetchMethodNames(String filePath) throws TDException {
 		String[] fileContent = this.readFileContent(filePath);
 		String[] methodNames = this.extractMethodNames(fileContent);
@@ -25,11 +34,24 @@ public class FileRepository {
 		}
 	}
 
+	/**
+	 * 
+	 * @param filePath
+	 * @param methodName
+	 * @return int
+	 * @throws TDException
+	 */
 	public int findLineNumberOfMethod(String filePath, String methodName) throws TDException {
 		String[] fileContent = this.readFileContent(filePath);
 		return this.findLineNumberOfMethod(fileContent, methodName) + 1;
 	}
 
+	/**
+	 * 
+	 * @param filePath
+	 * @return String[]
+	 * @throws TDException
+	 */
 	private String[] readFileContent(String filePath) throws TDException {
 		ArrayList<String> input = new ArrayList<>();
 
@@ -53,6 +75,13 @@ public class FileRepository {
 		return retVal;
 	}
 
+	/**
+	 * Gives the name of a method with parameters.
+	 * If parameters are not present the method name will be returned 
+	 * separated with spaces.
+	 * @param fileContent
+	 * @return String[]
+	 */
 	private String[] extractMethodNames(String[] fileContent) {
 		ArrayList<String> methodNames = new ArrayList<>();
 
@@ -86,6 +115,12 @@ public class FileRepository {
 		return retVal;
 	}
 
+	/**
+	 * 
+	 * @param fileContent
+	 * @param methodName
+	 * @return int
+	 */
 	private int findLineNumberOfMethod(String[] fileContent, String methodName) {
 		methodName = methodName.replaceAll(" ", "");
 		final String regex = "^[ \\t]*public.*void.*(test|should)" + methodName + ".*";

@@ -14,11 +14,18 @@ public class TDException extends Exception {
 	private TDException() {
 	}
 
+	/**
+	 * constructor
+	 * @param exceptionType
+	 */
 	public TDException(int exceptionType) {
 		this();
 		this.exceptionType = exceptionType;
 	}
 
+	/**
+	 * Returns error message based on exceptionType
+	 */
 	public String getMessage() {
 		switch (exceptionType) {
 		case 0:
