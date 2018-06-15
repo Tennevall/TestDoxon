@@ -1,4 +1,4 @@
-package tests;
+package testdoxon.tests;
 
 public class TestFileRepository {
 	

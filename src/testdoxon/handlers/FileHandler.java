@@ -1,9 +1,9 @@
-package handlers;
+package testdoxon.handlers;
 
 import java.io.File;
 
-import exceptionHandlers.TDException;
-import repositories.FileRepository;
+import testdoxon.exceptionHandlers.TDException;
+import testdoxon.repositories.FileRepository;
 
 public class FileHandler {
 	

@@ -1,24 +1,5 @@
 package testdoxon.views;
 
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.ui.part.*;
-import org.eclipse.ui.texteditor.AbstractTextEditor;
-import org.eclipse.ui.texteditor.IDocumentProvider;
-import org.eclipse.ui.texteditor.ITextEditor;
-
-import exceptionHandlers.TDException;
-import handlers.FileHandler;
-
-import org.eclipse.jface.viewers.*;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
-
 import java.io.File;
 import java.util.HashMap;
 
@@ -33,23 +14,58 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.Platform;
-import org.eclipse.jface.action.*;
+import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IMenuListener;
+import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.action.IToolBarManager;
+import org.eclipse.jface.action.MenuManager;
+import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.FontDescriptor;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
-import org.eclipse.jface.text.Region;
-import org.eclipse.ui.*;
-import org.eclipse.ui.editors.text.TextEditor;
-import org.eclipse.ui.ide.IDE;
-import org.eclipse.ui.internal.PartListenerList;
-import org.eclipse.swt.widgets.Menu;
+import org.eclipse.jface.viewers.DoubleClickEvent;
+import org.eclipse.jface.viewers.IDoubleClickListener;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.IStructuredContentProvider;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.ITableLabelProvider;
+import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.jface.viewers.TableViewer;
+import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.viewers.ViewerSorter;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CaretEvent;
 import org.eclipse.swt.custom.CaretListener;
 import org.eclipse.swt.custom.StyledText;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.ui.IActionBars;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IPartListener;
+import org.eclipse.ui.ISelectionListener;
+import org.eclipse.ui.ISelectionService;
+import org.eclipse.ui.ISharedImages;
+import org.eclipse.ui.IWorkbenchActionConstants;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.ide.IDE;
+import org.eclipse.ui.part.ViewPart;
+import org.eclipse.ui.texteditor.AbstractTextEditor;
+import org.eclipse.ui.texteditor.ITextEditor;
+
+import testdoxon.exceptionHandlers.TDException;
+import testdoxon.handlers.FileHandler;
 
 /**
  * This sample class demonstrates how to plug-in a new workbench view. The view
@@ -66,6 +82,7 @@ import org.eclipse.swt.custom.StyledText;
  * <p>
  */
 
+@SuppressWarnings("deprecation")
 public class View extends ViewPart {
 
 	/**
@@ -85,7 +102,12 @@ public class View extends ViewPart {
 	private FileHandler fileHandler;
 	private File currentFile;
 	private File currentTestFile;
+
+	// Listeners
 	private IResourceChangeListener saveFileListener;
+	private CaretListener wordListener;
+	private ISelectionListener fileSelected;
+	private IPartListener fileChanged;
 
 	/*
 	 * The content provider class is responsible for providing objects to the view.
@@ -95,7 +117,6 @@ public class View extends ViewPart {
 	 */
 
 	class ViewContentProvider implements IStructuredContentProvider {
-
 		private String filePath = "";
 		private String fileName = "";
 
@@ -115,7 +136,6 @@ public class View extends ViewPart {
 
 		public Object[] getElements(Object parent) {
 			try {
-
 				header.setText(fileName);
 				return fileHandler.getMethodsFromFile(this.filePath);
 			} catch (TDException e) {
@@ -139,7 +159,6 @@ public class View extends ViewPart {
 		}
 	}
 
-	@SuppressWarnings("deprecation")
 	class NameSorter extends ViewerSorter {
 	}
 
@@ -151,9 +170,11 @@ public class View extends ViewPart {
 		this.currentFile = null;
 		this.currentTestFile = null;
 		this.viewContentProvider = new ViewContentProvider();
-
 		this.widgetColor = new Color(null, 255, 255, 230);
+		this.initiateListeners();
+	}
 
+	private void initiateListeners() {
 		this.saveFileListener = new IResourceChangeListener() {
 			public void resourceChanged(IResourceChangeEvent event) {
 				IResourceDelta resourceDelta = event.getDelta();
@@ -182,23 +203,175 @@ public class View extends ViewPart {
 
 			}
 		};
+
+		this.wordListener = null;
+
+		this.fileSelected = new ISelectionListener() {
+
+			@Override
+			public void selectionChanged(IWorkbenchPart arg0, ISelection arg1) {
+				// TODO Auto-generated method stub
+				if (arg0.getTitle().matches(".*\\.java")) {
+
+					File file = (File) arg0.getSite().getPage().getActiveEditor().getEditorInput()
+							.getAdapter(File.class);
+
+					if (currentFile == null || !file.getAbsolutePath().equals(currentFile.getAbsolutePath())) {
+						currentFile = file;
+
+						if (currentFile.getName().matches("^Test.*")) {
+							if (currentTestFile == null
+									|| !currentTestFile.getAbsolutePath().equals(currentFile.getAbsolutePath())) {
+								currentTestFile = currentFile;
+
+								if (currentTestFile != null) {
+									Display.getDefault().syncExec(new Runnable() {
+										@Override
+										public void run() {
+											viewer.setInput(currentTestFile);
+										}
+									});
+								}
+							}
+						} else {
+							String[] parts = currentFile.getAbsolutePath().split("\\\\");
+							String newFile = "";
+							for (int i = 0; i < parts.length - 2; i++) {
+								newFile += parts[i] + "\\";
+							}
+							newFile += "tests\\Test" + currentFile.getName();
+
+							if (currentTestFile == null || !newFile.equals(currentTestFile.getAbsolutePath())) {
+								currentTestFile = new File(newFile);
+
+								if (currentTestFile != null) {
+									Display.getDefault().syncExec(new Runnable() {
+										@Override
+										public void run() {
+											viewer.setInput(currentTestFile);
+										}
+									});
+								}
+							}
+						}
+
+					}
+
+				}
+			}
+		};
+
+		this.fileChanged = new IPartListener() {
+
+			@Override
+			public void partOpened(IWorkbenchPart arg0) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void partDeactivated(IWorkbenchPart arg0) {
+				// TODO Auto-generated method stub
+				if (wordListener != null) {
+					IEditorPart iep = arg0.getSite().getPage().getActiveEditor();
+					if (iep != null) {
+						AbstractTextEditor e = (AbstractTextEditor) iep;
+						Control adapter = e.getAdapter(Control.class);
+
+						if (adapter instanceof StyledText) {
+							StyledText text = (StyledText) adapter;
+							text.removeCaretListener(wordListener);
+						}
+					}
+				}
+			}
+
+			@Override
+			public void partClosed(IWorkbenchPart arg0) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void partBroughtToTop(IWorkbenchPart arg0) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void partActivated(IWorkbenchPart arg0) {
+				// TODO Auto-generated method stub
+				IEditorPart iep = arg0.getSite().getPage().getActiveEditor();
+				if (iep != null) {
+					AbstractTextEditor e = (AbstractTextEditor) iep;
+					Control adapter = e.getAdapter(Control.class);
+
+					if (adapter instanceof StyledText) {
+						StyledText text = (StyledText) adapter;
+
+						wordListener = new CaretListener() {
+
+							@Override
+							public void caretMoved(CaretEvent arg0) {
+								// TODO Auto-generated method stub
+								String word = getWordUnderCaret(arg0.caretOffset, text);
+
+								if (word.length() > 0 && Character.isUpperCase(word.charAt(0))) {
+									String fileToLookFor = "Test" + word + ".java";
+
+									String[] parts = currentFile.getAbsolutePath().split("\\\\");
+									String newFile = "";
+									for (int i = 0; i < parts.length - 2; i++) {
+										newFile += parts[i] + "\\";
+									}
+									newFile += "tests\\" + fileToLookFor;
+
+									System.out.println("NewFile: " + newFile);
+									System.out.println(currentTestFile.getAbsolutePath());
+
+									if (!newFile.equals(currentTestFile.getAbsolutePath())) {
+										currentTestFile = new File(newFile);
+
+										if (currentTestFile != null) {
+											Display.getDefault().syncExec(new Runnable() {
+												@Override
+												public void run() {
+													viewer.setInput(currentTestFile);
+												}
+											});
+										}
+									}
+								}
+							}
+
+						};
+
+						text.addCaretListener(wordListener);
+					}
+				}
+			}
+		};
 	}
 
 	private void updateTable() {
-		IEditorPart iEditorPart = this.getSite().getWorkbenchWindow().getActivePage().getActivePart().getSite().getPage().getActiveEditor();
+		IEditorPart iEditorPart = this.getSite().getWorkbenchWindow().getActivePage().getActivePart().getSite()
+				.getPage().getActiveEditor();
 
 		if (iEditorPart != null) {
 			File file = iEditorPart.getEditorInput().getAdapter(File.class);
 
 			if (file != null) {
+				// Always update on save
 				currentFile = file;
 				currentTestFile = currentFile;
-				Display.getDefault().syncExec(new Runnable() {
-					@Override
-					public void run() {
-						viewer.setInput(currentTestFile);
-					}
-				});
+				if (currentTestFile != null) {
+					Display.getDefault().syncExec(new Runnable() {
+						@Override
+						public void run() {
+							viewer.setInput(currentTestFile);
+						}
+					});
+				}
 			}
 		}
 
@@ -207,7 +380,6 @@ public class View extends ViewPart {
 	/**
 	 * This is a callback that will allow us to create the viewer and initialize it.
 	 */
-	@SuppressWarnings("deprecation")
 	public void createPartControl(Composite parent) {
 		GridLayout gl = new GridLayout(1, false);
 		gl.marginLeft = 10;
@@ -219,6 +391,23 @@ public class View extends ViewPart {
 		parent.setLayout(gl);
 		parent.setBackground(widgetColor);
 
+		this.populatePlugin(parent);
+
+		// Adding listeners
+		ResourcesPlugin.getWorkspace().addResourceChangeListener(saveFileListener, IResourceChangeEvent.POST_BUILD);
+		ISelectionService iSelectionService = this.getSite().getWorkbenchWindow().getSelectionService();
+		iSelectionService.addPostSelectionListener(fileSelected);
+		PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().addPartListener(fileChanged);
+
+		// Create the help context id for the viewer's control
+		PlatformUI.getWorkbench().getHelpSystem().setHelp(viewer.getControl(), "TestDoxon.viewer");
+		makeActions();
+		hookContextMenu();
+		hookDoubleClickAction();
+		contributeToActionBars();
+	}
+
+	private void populatePlugin(Composite parent) {
 		header = new Label(parent, SWT.NONE);
 		header.setText("Test label");
 		header.setBackground(widgetColor);
@@ -247,116 +436,6 @@ public class View extends ViewPart {
 		viewer.getControl().setBackground(widgetColor);
 		GridData gridDataTableView = new GridData(SWT.FILL, SWT.FILL, true, true);
 		viewer.getControl().setLayoutData(gridDataTableView);
-
-		ResourcesPlugin.getWorkspace().addResourceChangeListener(saveFileListener, IResourceChangeEvent.POST_BUILD);
-
-		ISelectionService iSelectionService = this.getSite().getWorkbenchWindow().getSelectionService();
-		iSelectionService.addPostSelectionListener(new ISelectionListener() {
-
-			@Override
-			public void selectionChanged(IWorkbenchPart arg0, ISelection arg1) {
-				if (arg0.getTitle().matches(".*\\.java")) {
-
-					File file = (File) arg0.getSite().getPage().getActiveEditor().getEditorInput()
-							.getAdapter(File.class);
-
-					if (currentFile == null || !file.getAbsolutePath().equals(currentFile.getAbsolutePath())) {
-						currentFile = file;
-
-						if (currentFile.getName().matches("^Test.*")) {
-							currentTestFile = currentFile;
-							Display.getDefault().syncExec(new Runnable() {
-								@Override
-								public void run() {
-									viewer.setInput(currentTestFile);
-								}
-							});
-						} else {
-							String[] parts = currentFile.getAbsolutePath().split("\\\\");
-							String newFile = "";
-							for (int i = 0; i < parts.length - 2; i++) {
-								newFile += parts[i] + "\\";
-							}
-							newFile += "tests\\Test" + currentFile.getName();
-							currentTestFile = new File(newFile);
-							Display.getDefault().syncExec(new Runnable() {
-								@Override
-								public void run() {
-									viewer.setInput(currentTestFile);
-								}
-							});
-						}
-
-					}
-
-				}
-			}
-		});
-
-		PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().addPartListener(new IPartListener() {
-
-			@Override
-			public void partOpened(IWorkbenchPart arg0) {
-			}
-
-			@Override
-			public void partDeactivated(IWorkbenchPart arg0) {
-			}
-
-			@Override
-			public void partClosed(IWorkbenchPart arg0) {
-			}
-
-			@Override
-			public void partBroughtToTop(IWorkbenchPart arg0) {
-			}
-
-			@Override
-			public void partActivated(IWorkbenchPart arg0) {
-				IEditorPart iep = arg0.getSite().getPage().getActiveEditor();
-				if (iep != null) {
-					AbstractTextEditor e = (AbstractTextEditor) iep;
-					Control adapter = e.getAdapter(Control.class);
-
-					if (adapter instanceof StyledText) {
-						StyledText text = (StyledText) adapter;
-						text.addCaretListener(new CaretListener() {
-
-							@Override
-							public void caretMoved(CaretEvent arg0) {
-								String word = getWordUnderCaret(arg0.caretOffset, text);
-
-								if (word.length() > 0 && Character.isUpperCase(word.charAt(0))) {
-									String fileToLookFor = "Test" + word + ".java";
-
-									String[] parts = currentFile.getAbsolutePath().split("\\\\");
-									String newFile = "";
-									for (int i = 0; i < parts.length - 2; i++) {
-										newFile += parts[i] + "\\";
-									}
-									newFile += "tests\\" + fileToLookFor;
-
-									currentTestFile = new File(newFile);
-									Display.getDefault().syncExec(new Runnable() {
-										@Override
-										public void run() {
-											viewer.setInput(currentTestFile);
-										}
-									});
-								}
-							}
-						});
-					}
-				}
-			}
-		});
-
-		// Create the help context id for the viewer's control
-		PlatformUI.getWorkbench().getHelpSystem().setHelp(viewer.getControl(), "TestDoxon.viewer");
-		makeActions();
-		hookContextMenu();
-		hookDoubleClickAction();
-		contributeToActionBars();
 	}
 
 	private String getWordUnderCaret(int pos, StyledText text) {
@@ -366,7 +445,7 @@ public class View extends ViewPart {
 		String desiredWord = "";
 
 		for (String word : words) {
-			if (lineOffset < word.length()) {
+			if (lineOffset <= word.length()) {
 				desiredWord = word;
 				break;
 			}
@@ -408,7 +487,6 @@ public class View extends ViewPart {
 
 	private void makeActions() {
 		doubleClickAction = new Action() {
-			@SuppressWarnings("deprecation")
 			public void run() {
 				ISelection selection = viewer.getSelection();
 				@SuppressWarnings("unused")
@@ -455,6 +533,7 @@ public class View extends ViewPart {
 					if (iFile != null) {
 						IWorkbenchPage iWorkbenchPage = getSite().getPage();
 
+						@SuppressWarnings("rawtypes")
 						HashMap<String, Comparable> map = new HashMap<String, Comparable>();
 						int lineNumber = 0;
 						try {
@@ -493,6 +572,7 @@ public class View extends ViewPart {
 		});
 	}
 
+	@SuppressWarnings("unused")
 	private void showMessage(String message) {
 		MessageDialog.openInformation(viewer.getControl().getShell(), "TestDoxon", message);
 	}

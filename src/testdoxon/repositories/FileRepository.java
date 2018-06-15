@@ -1,4 +1,4 @@
-package repositories;
+package testdoxon.repositories;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import exceptionHandlers.TDException;
+import testdoxon.exceptionHandlers.TDException;
 
 public class FileRepository {
 
@@ -17,15 +17,15 @@ public class FileRepository {
 	public String[] fetchMethodNames(String filePath) throws TDException {
 		String[] fileContent = this.readFileContent(filePath);
 		String[] methodNames = this.extractMethodNames(fileContent);
-		
-		if(methodNames.length == 0) {
+
+		if (methodNames.length == 0) {
 			return null;
 		} else {
 			return methodNames;
 		}
 	}
-	
-	public int findLineNumberOfMethod (String filePath, String methodName) throws TDException {
+
+	public int findLineNumberOfMethod(String filePath, String methodName) throws TDException {
 		String[] fileContent = this.readFileContent(filePath);
 		return this.findLineNumberOfMethod(fileContent, methodName) + 1;
 	}
@@ -79,25 +79,25 @@ public class FileRepository {
 				}
 			}
 		}
-		
+
 		String[] retVal = new String[methodNames.size()];
 		retVal = methodNames.toArray(retVal);
 
 		return retVal;
 	}
-	
-	private int findLineNumberOfMethod (String[] fileContent, String methodName) {
+
+	private int findLineNumberOfMethod(String[] fileContent, String methodName) {
 		methodName = methodName.replaceAll(" ", "");
 		final String regex = "^[ \\t]*public.*void.*(test|should)" + methodName + ".*";
-		
+
 		int result = -1;
-		for(int i = 0; i < fileContent.length - 1; i++) {
-			if(fileContent[i].matches(regex)) {
+		for (int i = 0; i < fileContent.length - 1; i++) {
+			if (fileContent[i].matches(regex)) {
 				result = i;
 				break;
 			}
 		}
-		
+
 		return result;
 	}
 }

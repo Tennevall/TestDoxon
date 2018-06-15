@@ -1,11 +1,11 @@
-package exceptionHandlers;
+package testdoxon.exceptionHandlers;
 
 public class TDException extends Exception {
 
 	final public static int FILE_NOT_FOUND = 0;
-	
+
 	private int exceptionType;
-	
+
 	/**
 	 * 
 	 */
@@ -13,21 +13,19 @@ public class TDException extends Exception {
 
 	private TDException() {
 	}
-	
+
 	public TDException(int exceptionType) {
 		this();
 		this.exceptionType = exceptionType;
 	}
-	
 
 	public String getMessage() {
-		switch(exceptionType) {
-			case 0:
-				return "File not found";
-			default:
-				return "Unkown error";
+		switch (exceptionType) {
+		case 0:
+			return "File not found";
+		default:
+			return "Unkown error";
 		}
 	}
-	
-	
+
 }
