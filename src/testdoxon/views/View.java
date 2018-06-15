@@ -96,11 +96,10 @@ public class View extends ViewPart {
 		public void inputChanged(Viewer v, Object oldInput, Object newInput) {
 			if (newInput instanceof File) {
 				File currFile = (File) newInput;
-				//this.filePath = currFile.getAbsolutePath().replaceAll("\\\\", "\\/");
-				//this.fileName = currFile.getParent() + "." + currFile.getName();
+				this.filePath = currFile.getAbsolutePath().replaceAll("\\\\", "\\/");
 				String temp[] = currFile.getAbsolutePath().toString().split("\\\\");
 				boolean pass = false;
-				System.out.println(temp.length + temp[0] + temp[1]);
+				this.fileName = "";
 				
 				for(int i = 0; i<temp.length ; i++)
 				{
@@ -117,12 +116,7 @@ public class View extends ViewPart {
 							this.fileName += temp[i] + ".";
 						}
 					}
-				}
-				
-				System.out.println(this.fileName);
-				
-				
-				//fileName = temp[temp.length - 1];
+				}	
 			}
 		}
 
