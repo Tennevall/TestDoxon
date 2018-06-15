@@ -134,18 +134,16 @@ public class View extends ViewPart {
 				File currFile = (File) newInput;
 				this.filePath = currFile.getAbsolutePath().replaceAll("\\\\", "\\/");
 				String temp[] = currFile.getAbsolutePath().toString().split("\\\\");
-				boolean pass = false;
 				this.fileName = "";
-
-				for (int i = 0; i < temp.length; i++) {
-					if (temp[i].contains("src") || pass) {
-						if (temp[i].contains(currFile.getName())) {
-							this.fileName += currFile.getName();
-							pass = false;
-						} else {
-							pass = true;
-							this.fileName += temp[i] + ".";
-						}
+				
+				boolean startCopy = false;
+				for(String part : temp) {
+					if(startCopy) {
+						fileName += "." + part;
+					}
+					if(part.contains("src") && !startCopy) {
+						fileName = part;
+						startCopy = true;
 					}
 				}
 			}
