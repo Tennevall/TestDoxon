@@ -223,14 +223,14 @@ public class View extends ViewPart {
 							if (currentTestFile == null
 									|| !currentTestFile.getAbsolutePath().equals(currentFile.getAbsolutePath())) {
 								currentTestFile = currentFile;
-
-								if (currentTestFile != null) {
-									Display.getDefault().syncExec(new Runnable() {
-										@Override
-										public void run() {
-											viewer.setInput(currentTestFile);
-										}
-									});
+								
+								if(currentTestFile != null) {
+								Display.getDefault().syncExec(new Runnable() {
+									@Override
+									public void run() {
+										viewer.setInput(currentTestFile);
+									}
+								});
 								}
 							}
 						} else {
