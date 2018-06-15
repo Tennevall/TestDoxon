@@ -11,6 +11,7 @@ import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IResourceDeltaVisitor;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.AssertionFailedException;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
@@ -68,7 +69,6 @@ import testdoxon.exceptionHandlers.TDException;
 import testdoxon.handlers.FileHandler;
 import testdoxon.utils.DoxonUtils;
 
-
 /**
  * This sample class demonstrates how to plug-in a new workbench view. The view
  * shows data obtained from the model. The sample creates a dummy model on the
@@ -124,6 +124,7 @@ public class View extends ViewPart {
 
 		/**
 		 * Checks the current files name and package name
+		 * 
 		 * @param v
 		 * @param oldInput
 		 * @param newInput
@@ -135,18 +136,13 @@ public class View extends ViewPart {
 				String temp[] = currFile.getAbsolutePath().toString().split("\\\\");
 				boolean pass = false;
 				this.fileName = "";
-				
-				for(int i = 0; i<temp.length ; i++)
-				{
-					if(temp[i].contains("src") || pass)
-					{
-						if(temp[i].contains(currFile.getName()))
-						{
+
+				for (int i = 0; i < temp.length; i++) {
+					if (temp[i].contains("src") || pass) {
+						if (temp[i].contains(currFile.getName())) {
 							this.fileName += currFile.getName();
 							pass = false;
-						}
-						else
-						{
+						} else {
 							pass = true;
 							this.fileName += temp[i] + ".";
 						}
@@ -159,8 +155,9 @@ public class View extends ViewPart {
 		}
 
 		/**
-		 * Updates the header with the current testfile name and package name. 
-		 * If file is not found return is "file not found"
+		 * Updates the header with the current testfile name and package name. If file
+		 * is not found return is "file not found"
+		 * 
 		 * @param parent
 		 * @return String[]
 		 */
@@ -259,8 +256,6 @@ public class View extends ViewPart {
 
 			@Override
 			public void partOpened(IWorkbenchPart arg0) {
-				// TODO Auto-generated method stub
-
 			}
 
 			@Override
@@ -282,14 +277,10 @@ public class View extends ViewPart {
 
 			@Override
 			public void partClosed(IWorkbenchPart arg0) {
-				// TODO Auto-generated method stub
-
 			}
 
 			@Override
 			public void partBroughtToTop(IWorkbenchPart arg0) {
-				// TODO Auto-generated method stub
-
 			}
 
 			@Override
@@ -328,7 +319,7 @@ public class View extends ViewPart {
 										}
 									}
 								} else {
-									// Show current classes test class.
+									// Show current class test class.
 									findFileToOpen();
 								}
 							}
@@ -341,28 +332,35 @@ public class View extends ViewPart {
 			}
 		};
 	}
-	
-	private void findFileToOpen() {
-		if (currentFile.getName().matches("^Test.*")) {
-			if (currentTestFile == null || !currentTestFile.getAbsolutePath().equals(currentFile.getAbsolutePath())) {
-				currentTestFile = currentFile;
-			}
-		} else {
-			DoxonUtils doxonUtils = new DoxonUtils();
-			String newTestFilepath = doxonUtils.createTestPath(currentFile) + "Test" + currentFile.getName();
 
-			if (currentTestFile == null || !newTestFilepath.equals(currentTestFile.getAbsolutePath())) {
-				currentTestFile = new File(newTestFilepath);
-			}
-		}
-		
-		if (currentTestFile != null) {
-			Display.getDefault().syncExec(new Runnable() {
-				@Override
-				public void run() {
-					viewer.setInput(currentTestFile);
+	private void findFileToOpen() {
+		if (currentFile != null) {
+			if (currentFile.getName().matches("^Test.*")) {
+				if (currentTestFile == null
+						|| !currentTestFile.getAbsolutePath().equals(currentFile.getAbsolutePath())) {
+					currentTestFile = currentFile;
 				}
-			});
+			} else {
+				DoxonUtils doxonUtils = new DoxonUtils();
+				String newTestFilepath = doxonUtils.createTestPath(currentFile) + "Test" + currentFile.getName();
+
+				if (currentTestFile == null || !newTestFilepath.equals(currentTestFile.getAbsolutePath())) {
+					currentTestFile = new File(newTestFilepath);
+				}
+			}
+
+			if (currentTestFile != null) {
+				try {
+					Display.getDefault().syncExec(new Runnable() {
+						@Override
+						public void run() {
+							viewer.setInput(currentTestFile);
+						}
+					});
+				} catch (AssertionFailedException e) {
+					// Do nothing
+				}
+			}
 		}
 	}
 
@@ -378,16 +376,19 @@ public class View extends ViewPart {
 				currentFile = file;
 				currentTestFile = currentFile;
 				if (currentTestFile != null && viewer != null) {
-					Display.getDefault().syncExec(new Runnable() {
-						@Override
-						public void run() {
-							viewer.setInput(currentTestFile);
-						}
-					});
+					try {
+						Display.getDefault().syncExec(new Runnable() {
+							@Override
+							public void run() {
+								viewer.setInput(currentTestFile);
+							}
+						});
+					} catch (AssertionFailedException e) {
+						// Do nothing
+					}
 				}
 			}
 		}
-
 	}
 
 	/**
@@ -527,7 +528,6 @@ public class View extends ViewPart {
 							} catch (TDException e1) {
 								e1.printStackTrace();
 							}
-							System.out.println("LineNumber: " + lineNumber);
 							lineInfo = document.getLineInformation(lineNumber - 1);
 						} catch (BadLocationException e) {
 

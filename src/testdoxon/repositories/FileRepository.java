@@ -122,15 +122,15 @@ public class FileRepository {
 	 * @param methodName
 	 * @return int
 	 */
-	private int findLineNumberOfMethod(String[] fileContent, String methodName) {		
+	private int findLineNumberOfMethod(String[] fileContent, String methodName) {
 		if (!methodName.matches(".*\\(.*\\).*")) {
 			methodName = methodName.replaceAll(" ", "");
 			methodName += ".*\\(.*\\)";
-			
+
 		} else {
 			methodName = methodName.replaceAll("([\\(\\)])", "\\\\$0");
 		}
-		
+
 		final String regex = "^[ \\t]*public.*void.*(test|should)" + methodName + ".*";
 
 		int result = -1;

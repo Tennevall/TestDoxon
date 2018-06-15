@@ -29,5 +29,13 @@ public class TestFileRepository {
 	public void testOpen () {
 		
 	}
+	
+	public void testAsync() {
+		
+	}
+	
+	public void testFileHandler() {
+		
+	}
 
 }

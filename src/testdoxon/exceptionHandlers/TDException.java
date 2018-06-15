@@ -16,6 +16,7 @@ public class TDException extends Exception {
 
 	/**
 	 * constructor
+	 * 
 	 * @param exceptionType
 	 */
 	public TDException(int exceptionType) {
