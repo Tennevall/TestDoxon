@@ -66,6 +66,8 @@ import org.eclipse.ui.texteditor.ITextEditor;
 
 import testdoxon.exceptionHandlers.TDException;
 import testdoxon.handlers.FileHandler;
+import testdoxon.utils.DoxonUtils;
+
 
 /**
  * This sample class demonstrates how to plug-in a new workbench view. The view
@@ -246,43 +248,7 @@ public class View extends ViewPart {
 
 					if (currentFile == null || !file.getAbsolutePath().equals(currentFile.getAbsolutePath())) {
 						currentFile = file;
-
-						if (currentFile.getName().matches("^Test.*")) {
-							if (currentTestFile == null
-									|| !currentTestFile.getAbsolutePath().equals(currentFile.getAbsolutePath())) {
-								currentTestFile = currentFile;
-
-								if (currentTestFile != null) {
-									Display.getDefault().syncExec(new Runnable() {
-										@Override
-										public void run() {
-											viewer.setInput(currentTestFile);
-										}
-									});
-								}
-							}
-						} else {
-							String[] parts = currentFile.getAbsolutePath().split("\\\\");
-							String newFile = "";
-							for (int i = 0; i < parts.length - 2; i++) {
-								newFile += parts[i] + "\\";
-							}
-							newFile += "tests\\Test" + currentFile.getName();
-
-							if (currentTestFile == null || !newFile.equals(currentTestFile.getAbsolutePath())) {
-								currentTestFile = new File(newFile);
-
-								if (currentTestFile != null) {
-									Display.getDefault().syncExec(new Runnable() {
-										@Override
-										public void run() {
-											viewer.setInput(currentTestFile);
-										}
-									});
-								}
-							}
-						}
-
+						findFileToOpen();
 					}
 
 				}
@@ -345,20 +311,12 @@ public class View extends ViewPart {
 								String word = getWordUnderCaret(arg0.caretOffset, text);
 
 								if (word.length() > 0 && Character.isUpperCase(word.charAt(0))) {
+									DoxonUtils doxonUtils = new DoxonUtils();
 									String fileToLookFor = "Test" + word + ".java";
+									String newTestFileath = doxonUtils.createTestPath(currentFile) + fileToLookFor;
 
-									String[] parts = currentFile.getAbsolutePath().split("\\\\");
-									String newFile = "";
-									for (int i = 0; i < parts.length - 2; i++) {
-										newFile += parts[i] + "\\";
-									}
-									newFile += "tests\\" + fileToLookFor;
-
-									System.out.println("NewFile: " + newFile);
-									System.out.println(currentTestFile.getAbsolutePath());
-
-									if (!newFile.equals(currentTestFile.getAbsolutePath())) {
-										currentTestFile = new File(newFile);
+									if (!newTestFileath.equals(currentTestFile.getAbsolutePath())) {
+										currentTestFile = new File(newTestFileath);
 
 										if (currentTestFile != null) {
 											Display.getDefault().syncExec(new Runnable() {
@@ -369,6 +327,9 @@ public class View extends ViewPart {
 											});
 										}
 									}
+								} else {
+									// Show current classes test class.
+									findFileToOpen();
 								}
 							}
 
@@ -379,6 +340,30 @@ public class View extends ViewPart {
 				}
 			}
 		};
+	}
+	
+	private void findFileToOpen() {
+		if (currentFile.getName().matches("^Test.*")) {
+			if (currentTestFile == null || !currentTestFile.getAbsolutePath().equals(currentFile.getAbsolutePath())) {
+				currentTestFile = currentFile;
+			}
+		} else {
+			DoxonUtils doxonUtils = new DoxonUtils();
+			String newTestFilepath = doxonUtils.createTestPath(currentFile) + "Test" + currentFile.getName();
+
+			if (currentTestFile == null || !newTestFilepath.equals(currentTestFile.getAbsolutePath())) {
+				currentTestFile = new File(newTestFilepath);
+			}
+		}
+		
+		if (currentTestFile != null) {
+			Display.getDefault().syncExec(new Runnable() {
+				@Override
+				public void run() {
+					viewer.setInput(currentTestFile);
+				}
+			});
+		}
 	}
 
 	private void updateTable() {
@@ -392,7 +377,7 @@ public class View extends ViewPart {
 				// Always update on save
 				currentFile = file;
 				currentTestFile = currentFile;
-				if (currentTestFile != null) {
+				if (currentTestFile != null && viewer != null) {
 					Display.getDefault().syncExec(new Runnable() {
 						@Override
 						public void run() {
@@ -542,7 +527,7 @@ public class View extends ViewPart {
 							} catch (TDException e1) {
 								e1.printStackTrace();
 							}
-
+							System.out.println("LineNumber: " + lineNumber);
 							lineInfo = document.getLineInformation(lineNumber - 1);
 						} catch (BadLocationException e) {
 

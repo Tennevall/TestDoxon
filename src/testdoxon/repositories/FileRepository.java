@@ -19,6 +19,7 @@ public class FileRepository {
 
 	/**
 	 * Returns null if method name is not found
+	 * 
 	 * @param filePath
 	 * @return String[]
 	 * @throws TDException
@@ -76,9 +77,9 @@ public class FileRepository {
 	}
 
 	/**
-	 * Gives the name of a method with parameters.
-	 * If parameters are not present the method name will be returned 
-	 * separated with spaces.
+	 * Gives the name of a method with parameters. If parameters are not present the
+	 * method name will be returned separated with spaces.
+	 * 
 	 * @param fileContent
 	 * @return String[]
 	 */
@@ -121,8 +122,15 @@ public class FileRepository {
 	 * @param methodName
 	 * @return int
 	 */
-	private int findLineNumberOfMethod(String[] fileContent, String methodName) {
-		methodName = methodName.replaceAll(" ", "");
+	private int findLineNumberOfMethod(String[] fileContent, String methodName) {		
+		if (!methodName.matches(".*\\(.*\\).*")) {
+			methodName = methodName.replaceAll(" ", "");
+			methodName += ".*\\(.*\\)";
+			
+		} else {
+			methodName = methodName.replaceAll("([\\(\\)])", "\\\\$0");
+		}
+		
 		final String regex = "^[ \\t]*public.*void.*(test|should)" + methodName + ".*";
 
 		int result = -1;

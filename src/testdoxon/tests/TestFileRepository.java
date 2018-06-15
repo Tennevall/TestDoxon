@@ -14,7 +14,19 @@ public class TestFileRepository {
 		
 	}
 	
-	public void testNHK() {
+	public void testFunc(String input) {
+		
+	}
+	
+	public void testFunc(int test) {
+		
+	}
+	
+	public void testFunc(char okej) {
+		
+	}
+	
+	public void testOpen () {
 		
 	}
 
