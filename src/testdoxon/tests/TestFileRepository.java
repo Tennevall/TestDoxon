@@ -2,19 +2,19 @@ package testdoxon.tests;
 
 public class TestFileRepository {
 	
-	public void testPhilip() {
+	public void testBeTheGreaterMan            () {
 		
 	}
 	
-	public void testRasmus() {
+	public void testClose() {
 		
 	}
 	
-	public void testRasPhi() {
+	public void testWillItWork() {
 		
 	}
 	
-	public void testFunc(String input) {
+	public void testFunc(String test) {
 		
 	}
 	
@@ -22,7 +22,7 @@ public class TestFileRepository {
 		
 	}
 	
-	public void testFunc(char okej) {
+	public void testFunc(char test) {
 		
 	}
 	
@@ -35,6 +35,26 @@ public class TestFileRepository {
 	}
 	
 	public void testFileHandler() {
+		
+	}
+	
+	public void testZebra() {
+		
+	}
+	
+	public void testThisIsAReallyLongNameAndWillMostLikelyBeOutSideThePluginBox() {
+		
+	}
+	
+	public void testBtestB() {
+		
+	}
+	
+	public void testC (String hej) {
+		
+	}
+	
+	public void testC () {
 		
 	}
 

@@ -88,7 +88,8 @@ public class FileRepository {
 
 		for (String line : fileContent) {
 			// 1. Filter out all method names
-			Pattern pattern = Pattern.compile("^[ \t]*public.*void.*(test|should)(.*[^ ] *\\(.*\\))");
+			//Pattern pattern = Pattern.compile("^[ \t]*public.*void.*(test|should)([A-Z0-9].*[^ ] *\\(.*\\))");
+			Pattern pattern = Pattern.compile("^[ \t\n]*public[ \t\n]+void[ \t\n]+(test|should)([A-Z0-9]+.*\\(.*\\))");
 			Matcher matcher = pattern.matcher(line);
 
 			if (matcher.find()) {
@@ -104,7 +105,7 @@ public class FileRepository {
 					matcher = pattern.matcher(_strMatch);
 
 					if (matcher.find()) {
-						methodNames.add(matcher.group(1).replaceAll("([A-Z0-9][a-z0-9]*)", "$0 "));
+						methodNames.add(matcher.group(1).replaceAll("([A-Z0-9][a-z0-9_$]*)", "$0 "));
 					}
 				}
 			}
@@ -125,13 +126,14 @@ public class FileRepository {
 	private int findLineNumberOfMethod(String[] fileContent, String methodName) {
 		if (!methodName.matches(".*\\(.*\\).*")) {
 			methodName = methodName.replaceAll(" ", "");
-			methodName += ".*\\(.*\\)";
+			methodName += "[ \t\n]*\\([ \t\n]*\\)";
 
 		} else {
 			methodName = methodName.replaceAll("([\\(\\)])", "\\\\$0");
 		}
 
-		final String regex = "^[ \\t]*public.*void.*(test|should)" + methodName + ".*";
+		
+		final String regex = "^[ \t\n]*public.*void.*(test|should)" + methodName + ".*";
 
 		int result = -1;
 		for (int i = 0; i < fileContent.length - 1; i++) {
