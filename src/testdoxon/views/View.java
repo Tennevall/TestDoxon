@@ -120,20 +120,48 @@ public class View extends ViewPart {
 		private String filePath = "";
 		private String fileName = "";
 
+		/**
+		 * Checks the current files name and package name
+		 * @param v
+		 * @param oldInput
+		 * @param newInput
+		 */
 		public void inputChanged(Viewer v, Object oldInput, Object newInput) {
 			if (newInput instanceof File) {
 				File currFile = (File) newInput;
 				this.filePath = currFile.getAbsolutePath().replaceAll("\\\\", "\\/");
-				this.fileName = currFile.getParent() + "." + currFile.getName();
-				String temp[] = fileName.split("\\\\");
-				fileName = temp[temp.length - 1];
-
+				String temp[] = currFile.getAbsolutePath().toString().split("\\\\");
+				boolean pass = false;
+				this.fileName = "";
+				
+				for(int i = 0; i<temp.length ; i++)
+				{
+					if(temp[i].contains("src") || pass)
+					{
+						if(temp[i].contains(currFile.getName()))
+						{
+							this.fileName += currFile.getName();
+							pass = false;
+						}
+						else
+						{
+							pass = true;
+							this.fileName += temp[i] + ".";
+						}
+					}
+				}
 			}
 		}
 
 		public void dispose() {
 		}
 
+		/**
+		 * Updates the header with the current testfile name and package name. 
+		 * If file is not found return is "file not found"
+		 * @param parent
+		 * @return String[]
+		 */
 		public Object[] getElements(Object parent) {
 			try {
 				header.setText(fileName);
