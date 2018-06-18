@@ -18,8 +18,6 @@ public class DoxonUtils {
 				newFile += parts[i] + "\\";
 			}
 		}
-		System.out.println(newFile);
-		//newFile += "tests\\";
 		return newFile;
 	}
 	
