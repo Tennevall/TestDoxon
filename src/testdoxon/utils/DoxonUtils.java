@@ -14,4 +14,19 @@ public class DoxonUtils {
 		return newFile;
 	}
 	
+	public String findTestFolder (String filepath) {
+		String[] parts = filepath.split("\\\\");
+		String newFilepath = "";
+		
+		for(String part : parts) {
+			if(part.equals("main")) {
+				newFilepath += "test";
+				break;
+			}
+			newFilepath += part + "/";
+		}
+		
+		return newFilepath;
+	}
+	
 }

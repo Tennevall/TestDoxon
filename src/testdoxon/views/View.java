@@ -66,6 +66,7 @@ import org.eclipse.ui.texteditor.AbstractTextEditor;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 import testdoxon.exceptionHandlers.TDException;
+import testdoxon.handlers.FileCrawlerHandler;
 import testdoxon.handlers.FileHandler;
 import testdoxon.utils.DoxonUtils;
 
@@ -102,6 +103,7 @@ public class View extends ViewPart {
 	private ViewContentProvider viewContentProvider;
 
 	private FileHandler fileHandler;
+	private FileCrawlerHandler fileCrawlerHandler;
 	private File currentFile;
 	private File currentTestFile;
 
@@ -192,8 +194,11 @@ public class View extends ViewPart {
 	 */
 	public View() {
 		this.fileHandler = new FileHandler();
+		this.fileCrawlerHandler = new FileCrawlerHandler();
+		
 		this.currentFile = null;
 		this.currentTestFile = null;
+		
 		this.viewContentProvider = new ViewContentProvider();
 		this.widgetColor = new Color(null, 255, 255, 230);
 		this.initiateListeners();
@@ -243,6 +248,12 @@ public class View extends ViewPart {
 
 					if (currentFile == null || !file.getAbsolutePath().equals(currentFile.getAbsolutePath())) {
 						currentFile = file;
+						DoxonUtils doxonUtils = new DoxonUtils();
+						String testFolder = doxonUtils.findTestFolder(currentFile.getAbsolutePath());
+						if(testFolder != null) {
+							fileCrawlerHandler.getAllTestClasses(testFolder);
+						}
+						
 						findFileToOpen();
 					}
 
@@ -296,16 +307,14 @@ public class View extends ViewPart {
 
 							@Override
 							public void caretMoved(CaretEvent arg0) {
-								// TODO Auto-generated method stub
 								String word = getWordUnderCaret(arg0.caretOffset, text);
 
 								if (word.length() > 0 && Character.isUpperCase(word.charAt(0))) {
-									DoxonUtils doxonUtils = new DoxonUtils();
 									String fileToLookFor = "Test" + word + ".java";
-									String newTestFileath = doxonUtils.createTestPath(currentFile) + fileToLookFor;
-
-									if (!newTestFileath.equals(currentTestFile.getAbsolutePath())) {
-										currentTestFile = new File(newTestFileath);
+									String newTestFilepath = fileCrawlerHandler.getTestFilepathFromFilename(fileToLookFor, currentFile.getAbsolutePath(), currentFile.getName());
+	
+									if (newTestFilepath != null && !newTestFilepath.equals(currentTestFile.getAbsolutePath())) {
+										currentTestFile = new File(newTestFilepath);
 
 										if (currentTestFile != null) {
 											Display.getDefault().syncExec(new Runnable() {
@@ -392,7 +401,7 @@ public class View extends ViewPart {
 	/**
 	 * This is a callback that will allow us to create the viewer and initialize it.
 	 */
-	public void createPartControl(Composite parent) {
+	public void createPartControl(Composite parent) {		
 		GridLayout gl = new GridLayout(1, false);
 		gl.marginLeft = 10;
 		gl.marginHeight = 10;
