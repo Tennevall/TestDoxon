@@ -59,6 +59,32 @@ public class DoxonUtils {
 		}
 		return newFile;
 	}
+	
+	public static String createTestPath(String file) {
+
+		if(file == null) {
+			return null;
+		}
+		String[] parts;
+		if (System.getProperty("os.name").contains("Windows")) {
+			parts = file.split("\\\\");
+		} else {
+			String filepath = file;
+			filepath.replaceAll("( )", "\\$0");
+			parts = filepath.split("/");
+		}
+		
+		String newFile = "";
+
+		for (int i = 0; i < parts.length - 1; i++) {
+			if (parts[i].equals("main")) {
+				newFile += "test/";
+			} else {
+				newFile += parts[i] + "/";
+			}
+		}
+		return newFile;
+	}
 
 	/**
 	 * Locates test folder

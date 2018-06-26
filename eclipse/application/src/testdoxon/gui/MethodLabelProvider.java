@@ -13,14 +13,14 @@ import org.osgi.framework.Bundle;
 
 import testdoxon.model.TDTableItem;
 
-public class TestMethodLabelProvider extends LabelProvider implements ITableLabelProvider {
+public class MethodLabelProvider extends LabelProvider implements ITableLabelProvider {
 	public final Image redDot;
 	public final Image greenDot;
 	public final Image grayDot;
 	public final Image blueDot;
 	public final Image yellowDot;
 	
-	public TestMethodLabelProvider () {
+	public MethodLabelProvider () {
 		Bundle bundle = Platform.getBundle("TestDoxon");
 		URL url = null;
 		ImageDescriptor imageDesc = null;

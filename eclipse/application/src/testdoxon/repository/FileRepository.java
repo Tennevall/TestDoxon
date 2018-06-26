@@ -147,11 +147,11 @@ public class FileRepository {
 			return false;
 		}
 		if ((lineNumber - 2) < 0) {
-			return fileContent[lineNumber - 1].matches("[ \t\n]*@Test[ \t\n]*");
+			return fileContent[lineNumber - 1].matches("[ \t\n]*@Test.*");
 		}
 
-		return fileContent[lineNumber - 1].matches("[ \t\n]*@Test[ \t\n]*")
-				|| fileContent[lineNumber - 2].matches("[ \t\n]*@Test[ \t\n]*");
+		return fileContent[lineNumber - 1].matches("[ \t\n]*@Test.*")
+				|| fileContent[lineNumber - 2].matches("[ \t\n]*@Test.*");
 	}
 
 	private boolean lookForAtIgnore(String[] fileContent, int lineNumber) {
@@ -159,10 +159,10 @@ public class FileRepository {
 			return false;
 		}
 		if ((lineNumber - 2) < 0) {
-			return fileContent[lineNumber - 1].matches("[ \t\n]*@Ignore[ \t\n]*");
+			return fileContent[lineNumber - 1].matches("[ \t\n]*@Ignore.*");
 		}
-		return fileContent[lineNumber - 1].matches("[ \t\n]*@Ignore[ \t\n]*")
-				|| fileContent[lineNumber - 2].matches("[ \t\n]*@Ignore[ \t\n]*");
+		return fileContent[lineNumber - 1].matches("[ \t\n]*@Ignore.*")
+				|| fileContent[lineNumber - 2].matches("[ \t\n]*@Ignore.*");
 	}
 
 	/**

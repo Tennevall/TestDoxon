@@ -43,6 +43,7 @@ public class FileCrawlerHandler {
 	}
 
 	/**
+	 * Returns null if nothing is found or something is wrong
 	 * 
 	 * @param filename
 	 * @param currentFilepath
@@ -50,6 +51,9 @@ public class FileCrawlerHandler {
 	 * @return String
 	 */
 	public String getTestFilepathFromFilename(String filename, String currentFilepath, String currentFilename, ComboViewer testClassPathsComboBox) {
+		if(currentFilepath == null) {
+			return null;
+		}
 		// Get the location of where the actual test class should be
 		currentFilepath = currentFilepath.replaceAll("\\\\main\\\\", "\\\\test\\\\");
 		currentFilepath = currentFilepath.replaceAll("\\\\" + currentFilename, "");
@@ -111,6 +115,26 @@ public class FileCrawlerHandler {
 	public TestFile[] getAllTestClassesAsTestFileArray () {
 		ArrayList<TestFile> testClasses = fileCrawlerRepository.getAllTestFiles();
 		return testClasses.toArray(new TestFile[testClasses.size()]);
+	}
+	
+	public ArrayList<TestFile> contains(String filename) {
+		ArrayList<TestFile> matches = new ArrayList<>();
+		
+		for(TestFile testfile : fileCrawlerRepository.getAllTestFiles()) {
+			if(testfile.getFilename().equals(filename)) {
+				matches.add(testfile);
+			}
+		}
+		
+		return matches;
+	}
+	
+	public boolean listContains(String path) {
+		return this.fileCrawlerRepository.listContains(path);
+	}
+	
+	public void addToList (TestFile testFile) {
+		this.fileCrawlerRepository.addToList(testFile);
 	}
 
 }

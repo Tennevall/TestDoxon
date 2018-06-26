@@ -14,7 +14,7 @@ class TestDoxonUtils {
 
 	
 	@Test
-	public void testCreateTestPathReturn()
+	public void testCreateTestPathReturnWithFileParam()
 	{
 		File file = new File("\\TestDoxon\\src\\main\\testdoxon\\util");
 		TDFile tfile = new TDFile(file);
@@ -23,15 +23,57 @@ class TestDoxonUtils {
 	}
 	
 	@Test
-	public void testCreateTestPathNull()
+	public void testCreateTestPathReturnWithStringParam()
 	{
-		TDFile file = null;
+		String file = "C:\\TestDoxon\\src\\main\\testdoxon\\util";
 		
-		assertEquals(null,DoxonUtils.createTestPath(file));
+		assertEquals("C:/TestDoxon/src/test/testdoxon/",DoxonUtils.createTestPath(file));
 	}
 	
 	@Test
-	public void testFindTestFolderReturn()
+	public void testCreateTestPathReturnWithFileParamLinux() 
+	{
+		File file = new File("/TestDoxon/src/main/testdoxon/util");
+		TDFile tfile = new TDFile(file);
+		
+		assertEquals("C:/TestDoxon/src/test/testdoxon/", DoxonUtils.createTestPath(tfile));
+	}
+	
+	@Ignore
+	public void testCreateTestPathReurnWithStringParamLinux()
+	{
+		String file = "C:/TestDoxon/src/main/testdoxon/util";
+		
+		System.out.println(DoxonUtils.createTestPath(file));
+		assertEquals("C:/TestDoxon/src/test/testdoxon/util", DoxonUtils.createTestPath(file));
+	}
+	
+	@Test
+	public void testCreateTestPathNullFile()
+	{
+		TDFile file = null;
+		
+		assertNull(DoxonUtils.createTestPath(file));
+	}
+	
+	@Test
+	public void testCreateTestPathNullString()
+	{
+		String file = null;
+		
+		assertNull(file);
+	}
+	
+	@Test
+	public void testCreateTestPathEmptyString()
+	{
+		String file = "";
+		
+		assertEquals("", DoxonUtils.createTestPath(file));
+	}
+	
+	@Test
+	public void testFindRootFolderReturn()
 	{
 		String path = "\\TestDoxon\\src\\main\\testdoxon\\blah.exe";
 
@@ -39,7 +81,7 @@ class TestDoxonUtils {
 	}
 	
 	@Test
-	public void testFindTestFolderNull()
+	public void testFindRootFolderNull()
 	{
 		String path = null;
 
@@ -47,7 +89,7 @@ class TestDoxonUtils {
 	}
 	
 	@Test
-	public void testFindTestFolderBadPath()
+	public void testFindRootFolderBadPath()
 	{
 		String path = "\\TestDoxon\\src\\badpathing\\testdoxon";
 		
@@ -55,7 +97,7 @@ class TestDoxonUtils {
 	}
 	
 	@Test
-	public void testFindTestFolderEmptyPath()
+	public void testFindRootFolderEmptyPath()
 	{
 		String path = "";
 		

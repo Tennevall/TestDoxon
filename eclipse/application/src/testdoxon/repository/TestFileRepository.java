@@ -11,30 +11,43 @@ import testdoxon.model.TDTableItem;
 class TestFileRepository {
 
 	@Test
-	public void testFetchMethodNamesNotNull() throws TDException {
+	public void testFetchMethodNamesNotNull() 
+	{
 		
 		String path = System.getProperty("user.dir") + "\\src\\testdoxon\\util\\TestDoxonUtils.java";
 		FileRepository FR = new FileRepository();
 		
-		assertNotNull(FR.fetchMethodNames(path));
+		try {
+			assertNotNull(FR.fetchMethodNames(path));
+		} catch (TDException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	@Test
-	public void testFetchMethodNamesTriggerNull() throws TDException
+	public void testFetchMethodNamesTriggerNull()
 	{
 		String path = System.getProperty("user.dir") + "\\src\\testdoxon\\util\\DoxonUtils.java";
 		FileRepository FR = new FileRepository();
 		
-		assertNull(FR.fetchMethodNames(path));
+		try {
+			assertNull(FR.fetchMethodNames(path));
+		} catch (TDException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	@Test
-	public void testFetchMethodNamesEmptyString() throws TDException
+	public void testFetchMethodNamesEmptyString()
 	{
 		String path = "";
 		FileRepository FR = new FileRepository();
 		
-		assertNull(FR.fetchMethodNames(path));
+		try {
+			assertNull(FR.fetchMethodNames(path));
+		} catch (TDException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	@Test
@@ -51,30 +64,42 @@ class TestFileRepository {
 	}
 	
 	@Test
-	public void testFindLineNumberOfMethod() throws TDException
+	public void testFindLineNumberOfMethod()
 	{
 		String path = System.getProperty("user.dir") + "\\src\\testdoxon\\util\\TestDoxonUtils.java";
 		FileRepository FR = new FileRepository();
 		
-		assertEquals(34,FR.findLineNumberOfMethod(path, "FindTestFolderReturn"));
+		try {
+			assertEquals(76,FR.findLineNumberOfMethod(path, "FindRootFolderReturn"));
+		} catch (TDException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	@Test
-	public void testFindLineNumberOfMethodReturnZero() throws TDException
+	public void testFindLineNumberOfMethodReturnZero() 
 	{
 		String path = System.getProperty("user.dir") + "\\src\\testdoxon\\util\\TestDoxonUtils.java";
 		FileRepository FR = new FileRepository();
 		
-		assertEquals(0,FR.findLineNumberOfMethod(path, "FindTestFolder"));
+		try {
+			assertEquals(0,FR.findLineNumberOfMethod(path, "FindTestFolder"));
+		} catch (TDException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	@Test
-	public void testFindLineNumberOfMethodEmptyString() throws TDException
+	public void testFindLineNumberOfMethodEmptyString()
 	{
 		String path = "";
 		FileRepository FR = new FileRepository();
 		
-		assertEquals(-1,FR.findLineNumberOfMethod(path, "FindTestFolderReturn"));
+		try {
+			assertEquals(-1,FR.findLineNumberOfMethod(path, "FindTestFolderReturn"));
+		} catch (TDException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	@Test

@@ -38,7 +38,8 @@ public class UpdateOnCaretMovedListener implements CaretListener {
 	private TableViewer viewer;
 	private ComboViewer testClassPathsComboBox;
 
-	public UpdateOnCaretMovedListener(TableViewer viewer, StyledText text, FileCrawlerHandler fileCrawlerHandler, ComboViewer testClassPathsComboBox) {
+	public UpdateOnCaretMovedListener(TableViewer viewer, StyledText text, FileCrawlerHandler fileCrawlerHandler,
+			ComboViewer testClassPathsComboBox) {
 		super();
 		this.viewer = viewer;
 		this.text = text;
@@ -53,9 +54,12 @@ public class UpdateOnCaretMovedListener implements CaretListener {
 
 		if (word.length() > 0 && Character.isUpperCase(word.charAt(0))) {
 			String fileToLookFor = "Test" + word + ".java";
+			// ArrayList<TestFile> matches = fileCrawlerHandler.contains(fileToLookFor);
+
 			if (View.currentOpenFile != null) {
 				String newTestFilepath = fileCrawlerHandler.getTestFilepathFromFilename(fileToLookFor,
-						View.currentOpenFile.getAbsolutePath(), View.currentOpenFile.getName(), this.testClassPathsComboBox);
+						View.currentOpenFile.getAbsolutePath(), View.currentOpenFile.getName(),
+						this.testClassPathsComboBox);
 
 				if (newTestFilepath != null && !newTestFilepath.equals(View.currentTestFile.getAbsolutePath())) {
 					View.currentTestFile = new TDFile(new File(newTestFilepath));
@@ -76,20 +80,23 @@ public class UpdateOnCaretMovedListener implements CaretListener {
 				}
 			}
 		} else {
-			// Show current class test class.
-			this.findFileToOpen();
-			
-			// Update combo viewer to show all test classes
-			Display.getDefault().syncExec(new Runnable() {
-				@Override
-				public void run() {
-					try {
-						testClassPathsComboBox.setInput(fileCrawlerHandler.getAllTestClassesAsTestFileArray());
-					} catch (AssertionFailedException e) {
-						// Do nothing
+			if (!View.currentTestFile.getPath().equals(View.currentOpenFile.getPath())) {
+
+				// Show current class test class.
+				this.findFileToOpen();
+
+				// Update combo viewer to show all test classes
+				Display.getDefault().syncExec(new Runnable() {
+					@Override
+					public void run() {
+						try {
+							testClassPathsComboBox.setInput(fileCrawlerHandler.getAllTestClassesAsTestFileArray());
+						} catch (AssertionFailedException e) {
+							// Do nothing
+						}
 					}
-				}
-			});
+				});
+			}
 		}
 	}
 

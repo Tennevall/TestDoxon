@@ -5,11 +5,11 @@ import org.eclipse.jface.viewers.Viewer;
 
 import testdoxon.model.TestFile;
 
-public class TestClassPathsComboContentProvider implements IStructuredContentProvider {
+public class ClassPathsComboContentProvider implements IStructuredContentProvider {
 
 	TestFile[] testClassPaths;
 	
-	public TestClassPathsComboContentProvider () {
+	public ClassPathsComboContentProvider () {
 		this.testClassPaths = null;
 	}
 	

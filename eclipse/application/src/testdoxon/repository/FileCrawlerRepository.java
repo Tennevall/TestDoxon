@@ -72,6 +72,19 @@ public class FileCrawlerRepository {
 			}
 		}
 	}
+	
+	public boolean listContains(String path) {
+		for(TestFile testfile : testFiles) {
+			if(testfile.getFilepath().equals(path)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public void addToList (TestFile testFile) {
+		this.testFiles.add(testFile);
+	}
 
 	/**
 	 * 

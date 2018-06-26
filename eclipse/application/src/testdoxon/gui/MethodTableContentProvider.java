@@ -10,13 +10,13 @@ import testdoxon.handler.FileHandler;
 import testdoxon.model.TDFile;
 import testdoxon.model.TDTableItem;
 
-public class TestMethodTableContentProvider implements IStructuredContentProvider {
+public class MethodTableContentProvider implements IStructuredContentProvider {
 	private TDFile file;
 	private Text header;
 	Composite parentComposite;
 	private FileHandler fileHandler;
 
-	public TestMethodTableContentProvider (Text header, FileHandler fileHandler, Composite parentComposite) {
+	public MethodTableContentProvider (Text header, FileHandler fileHandler, Composite parentComposite) {
 		this.file = null;;
 		this.header = header;
 		this.fileHandler = fileHandler;
