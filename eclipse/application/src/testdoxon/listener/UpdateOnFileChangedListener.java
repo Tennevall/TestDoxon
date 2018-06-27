@@ -67,7 +67,7 @@ public class UpdateOnFileChangedListener implements ISelectionListener {
 				}
 				
 				// If list did not get updated and its a new test class - add it to the array
-				if(file.getName().matches("^Test.*") && !this.fileCrawlerHandler.listContains(file.getAbsolutePath()) && !updated) {
+				if((file.getName().matches("^Test.*") || file.getName().matches(".*Test.java")) && !this.fileCrawlerHandler.listContains(file.getAbsolutePath()) && !updated) {
 					this.fileCrawlerHandler.addToList(new TestFile(file.getName(), file.getAbsolutePath()));
 				}
 

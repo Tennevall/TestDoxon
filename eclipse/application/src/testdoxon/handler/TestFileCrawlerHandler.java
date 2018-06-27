@@ -57,7 +57,7 @@ class TestFileCrawlerHandler {
 	}
 	
 	@Test
-	void testGetTestFilepathFromFilenameNullAll() {
+	public void testGetTestFilepathFromFilenameNullAll() {
 		
 		FileCrawlerHandler FCH = new FileCrawlerHandler();
 		String filename = null;

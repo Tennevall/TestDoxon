@@ -63,7 +63,7 @@ public class FileCrawlerRepository {
 
 			for (File f : files) {
 				if (f.isFile()) {
-					if (f.getName().matches("^Test.*\\.java")) {
+					if (f.getName().matches("^Test.*\\.java") || f.getName().matches(".*Test\\.java")) {
 						this.testFiles.add(new TestFile(f.getName(), f.getAbsolutePath()));
 					}
 				} else if (f.isDirectory()) {

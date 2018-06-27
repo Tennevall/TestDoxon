@@ -37,6 +37,8 @@ public class UpdateOnCaretMovedListener implements CaretListener {
 	private StyledText text;
 	private TableViewer viewer;
 	private ComboViewer testClassPathsComboBox;
+	
+	private String firstTestFilepath, secondTestFilepath;
 
 	public UpdateOnCaretMovedListener(TableViewer viewer, StyledText text, FileCrawlerHandler fileCrawlerHandler,
 			ComboViewer testClassPathsComboBox) {
@@ -49,21 +51,34 @@ public class UpdateOnCaretMovedListener implements CaretListener {
 
 	@Override
 	public void caretMoved(CaretEvent arg0) {
-		// TODO Auto-generated method stub
 		String word = DoxonUtils.getWordUnderCaret(arg0.caretOffset, text);
 
 		if (word.length() > 0 && Character.isUpperCase(word.charAt(0))) {
-			String fileToLookFor = "Test" + word + ".java";
-			// ArrayList<TestFile> matches = fileCrawlerHandler.contains(fileToLookFor);
+			String firstFileToLookFor = "Test" + word + ".java";
+			String secondFileToLookFor = word + "Test.java";
 
 			if (View.currentOpenFile != null) {
-				String newTestFilepath = fileCrawlerHandler.getTestFilepathFromFilename(fileToLookFor,
+				this.firstTestFilepath = fileCrawlerHandler.getTestFilepathFromFilename(firstFileToLookFor,
 						View.currentOpenFile.getAbsolutePath(), View.currentOpenFile.getName(),
 						this.testClassPathsComboBox);
 
-				if (newTestFilepath != null && !newTestFilepath.equals(View.currentTestFile.getAbsolutePath())) {
-					View.currentTestFile = new TDFile(new File(newTestFilepath));
-					View.currentTestFile.setHeaderFilepath(View.currentTestFile.getAbsolutePath());
+				this.secondTestFilepath = fileCrawlerHandler.getTestFilepathFromFilename(secondFileToLookFor,
+						View.currentOpenFile.getAbsolutePath(), View.currentOpenFile.getName(),
+						this.testClassPathsComboBox);
+				
+				checkFileExists();
+
+				if ((this.firstTestFilepath != null && !this.firstTestFilepath.equals(View.currentTestFile.getAbsolutePath())) || 
+						(this.secondTestFilepath != null && !this.secondTestFilepath.equals(View.currentTestFile.getAbsolutePath())) ) {
+					
+					if(this.firstTestFilepath != null && !this.firstTestFilepath.equals(View.currentTestFile.getAbsolutePath())) {
+						View.currentTestFile = new TDFile(new File(firstTestFilepath));
+						View.currentTestFile.setHeaderFilepath(View.currentTestFile.getAbsolutePath());
+					
+					}else if(this.secondTestFilepath != null && !this.secondTestFilepath.equals(View.currentTestFile.getAbsolutePath())) {
+						View.currentTestFile = new TDFile(new File(this.secondTestFilepath));
+						View.currentTestFile.setHeaderFilepath(View.currentTestFile.getAbsolutePath());
+					}
 
 					if (View.currentTestFile != null) {
 						Display.getDefault().syncExec(new Runnable() {
@@ -79,8 +94,10 @@ public class UpdateOnCaretMovedListener implements CaretListener {
 					}
 				}
 			}
-		} else {
-			if (!View.currentTestFile.getPath().equals(View.currentOpenFile.getPath())) {
+		}
+		
+		else {
+			if (View.currentTestFile != null && View.currentOpenFile != null && !View.currentTestFile.getPath().equals(View.currentOpenFile.getPath())) {
 
 				// Show current class test class.
 				this.findFileToOpen();
@@ -128,5 +145,38 @@ public class UpdateOnCaretMovedListener implements CaretListener {
 			}
 		}
 	}
-
+	
+	private void checkFileExists() {
+		
+		if(this.firstTestFilepath != null && this.secondTestFilepath != null) {
+			File first = new File(this.firstTestFilepath);
+			File second = new File(this.secondTestFilepath);
+			if(first.exists() || second.exists()) {
+				if(first.exists() && second.exists()) {
+					this.secondTestFilepath = null;
+				}
+				else if(!first.exists()) {
+					this.firstTestFilepath = null;
+					if(!second.exists()) {
+						this.secondTestFilepath = null;
+					}
+				}
+				else {
+					this.secondTestFilepath = null;
+				}
+			}
+		}
+		else if(this.firstTestFilepath == null) {
+			File second = new File(this.secondTestFilepath);
+			if(!second.exists()) {
+				this.secondTestFilepath = null;
+			}
+		}
+		else {
+			File first = new File(this.firstTestFilepath);
+			if(!first.exists()) {
+				this.firstTestFilepath = null;
+			}
+		}
+	}
 }

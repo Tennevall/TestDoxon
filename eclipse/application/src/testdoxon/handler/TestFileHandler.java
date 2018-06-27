@@ -22,7 +22,7 @@ class TestFileHandler {
 	}
 	
 	@Test
-	void testGetMethodsFromFileEmptyPath() {
+	public void testGetMethodsFromFileEmptyPath() {
 		
 		FileHandler FH = new FileHandler();
 		String path = "";
@@ -85,7 +85,7 @@ class TestFileHandler {
 	}
 	
 	@Test
-	void testGetLineNumberOfSpecificMethodNullPath() {
+	public void testGetLineNumberOfSpecificMethodNullPath(String input) {
 		
 		FileHandler FH = new FileHandler();
 		String path = null;
@@ -99,7 +99,7 @@ class TestFileHandler {
 	}
 	
 	@Test
-	void testGetLineNumberOfSpecificMethodNullMethod() {
+	public void testGetLineNumberOfSpecificMethodNullMethod() {
 		
 		FileHandler FH = new FileHandler();
 		String path = System.getProperty("user.dir") + "\\src\\testdoxon\\util\\TestDoxonUtils.java";

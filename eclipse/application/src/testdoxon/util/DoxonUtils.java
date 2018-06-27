@@ -163,17 +163,22 @@ public class DoxonUtils {
 	public static void findFileToOpen(TableViewer viewer) {
 		if (View.currentOpenFile != null) {
 			// If a test class already is open
-			if (View.currentOpenFile.getName().matches("^Test.*")) {
+			if (View.currentOpenFile.getName().matches("^Test.*") || View.currentOpenFile.getName().matches(".*Test.java")) {
 				View.currentTestFile = View.currentOpenFile;
 				// If a regular class is open
 			} else {
-				String newTestFilepath = DoxonUtils.createTestPath(View.currentOpenFile) + "Test"
-						+ View.currentOpenFile.getName();
+				
+				String testFilepath = DoxonUtils.createTestPath(View.currentOpenFile);
+				String newTestFilepathPre = testFilepath + "Test" + View.currentOpenFile.getName();
+				
+				String newTestFilepathPost = testFilepath + View.currentOpenFile.getName().replaceAll("\\.java", "") + "Test.java";
 
 				FileHandler filehandler = new FileHandler();
-				if (filehandler.fileExists(newTestFilepath)) {
-					View.currentTestFile = new TDFile(new File(newTestFilepath));
-				} else {
+				if (filehandler.fileExists(newTestFilepathPre)) {
+					View.currentTestFile = new TDFile(new File(newTestFilepathPre));
+				} else if (filehandler.fileExists(newTestFilepathPost)) {
+					
+				}else {
 					View.currentTestFile = null;
 				}
 			}

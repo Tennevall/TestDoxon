@@ -73,7 +73,7 @@ public class UpdateOnSaveListener implements IResourceChangeListener {
 		IEditorPart iEditorPart = view.getSite().getWorkbenchWindow().getActivePage().getActivePart().getSite()
 				.getPage().getActiveEditor();
 		
-		if (iEditorPart != null && iEditorPart.getTitle().matches("^Test.*.java")) {
+		if (iEditorPart != null && (iEditorPart.getTitle().matches("^Test.*.java") || iEditorPart.getTitle().matches(".*Test.java"))) {
 			File file = iEditorPart.getEditorInput().getAdapter(File.class);
 			if (file != null) {
 				// Always update on save

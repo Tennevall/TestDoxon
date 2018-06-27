@@ -112,11 +112,14 @@ public class FileRepository {
 
 		for (int i = 0; i < fileContent.length; i++) {
 			// 1. Filter out all method names
-			Pattern pattern = Pattern.compile("^[ \t\n]*public[ \t\n]+void[ \t\n]+(test|should)([A-Z0-9]+.*\\(.*\\))");
+			Pattern pattern = Pattern.compile("^[ \t\n]*(public)?[ \t\n]+void[ \t\n]+(test|should)([A-Z0-9]+.*\\(.*\\))");
 			Matcher matcher = pattern.matcher(fileContent[i]);
 
 			if (matcher.find()) {
-				String _strMatch = matcher.group(2);
+				String _strMatch = matcher.group(0);
+				_strMatch = _strMatch.replaceAll("(public|void|test)", "");
+				_strMatch = _strMatch.replaceAll("^[ \t\n]*", "");
+				
 				boolean hasTest = lookForAtTest(fileContent, i);
 				boolean hasIgnore = lookForAtIgnore(fileContent, i);
 
@@ -180,7 +183,7 @@ public class FileRepository {
 			methodName = methodName.replaceAll("([\\(\\)])", "\\\\$0");
 		}
 
-		final String regex = "^[ \t\n]*public.*void.*(test|should)" + methodName + ".*";
+		final String regex = "^[ \t\n]*(public)?.*void.*(test|should)" + methodName + ".*";
 
 		int result = -1;
 		for (int i = 0; i < fileContent.length - 1; i++) {
