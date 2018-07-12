@@ -59,9 +59,11 @@ import org.eclipse.ui.part.ViewPart;
 
 import testdoxon.gui.ClassPathsComboContentProvider;
 import testdoxon.gui.ConfJumpbackDialog;
+import testdoxon.gui.ListDialog;
 import testdoxon.gui.MethodLabelProvider;
 import testdoxon.gui.MethodTableContentProvider;
 import testdoxon.gui.SortByNameSorter;
+import testdoxon.gui.StatisticDialog;
 import testdoxon.handler.FileCrawlerHandler;
 import testdoxon.handler.FileHandler;
 import testdoxon.listener.HeaderToolTipListener;
@@ -86,6 +88,8 @@ public class View extends ViewPart {
 	private Action dblClickTableViewer;
 	private Action selectionChangedComboViewer;
 	private Action configureRootFolder;
+	private Action showStatistics;
+	private Action showListDialog;
 
 	private MethodTableContentProvider contentProvider;
 
@@ -260,6 +264,8 @@ public class View extends ViewPart {
 
 	private void fillLocalToolBar(IToolBarManager manager) {
 		manager.add(configureRootFolder);
+		manager.add(showStatistics);
+		manager.add(showListDialog);
 	}
 
 	private void makeActions() {
@@ -276,6 +282,28 @@ public class View extends ViewPart {
 		configureRootFolder.setText("Configure software");
 		configureRootFolder.setImageDescriptor(
 				PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_ETOOL_HOME_NAV));
+		
+		showStatistics = new Action() {
+			public void run() {
+				StatisticDialog dialog = new 
+				StatisticDialog(Display.getCurrent().getActiveShell());
+				dialog.open();
+			}
+		};
+		showStatistics.setText("Statistics");
+		showStatistics.setImageDescriptor(
+				PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_ETOOL_HOME_NAV_DISABLED));
+		
+		showListDialog = new Action() {
+			public void run() {
+				ListDialog dialog = new
+				ListDialog(Display.getCurrent().getActiveShell());
+				dialog.open();
+			}
+		};
+		showListDialog.setText("List");
+		showListDialog.setImageDescriptor(
+				PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_DEC_FIELD_WARNING));
 	}
 
 	private void hookActions() {
